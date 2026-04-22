@@ -1,0 +1,51 @@
+Core MVP Features
+1. Functional Requirements
+a. Auth
+i. System shall allow users to register with email and password
+ii. System shall allow login with Google OAuth
+iii. System shall protect all routes — journal and mood scan require login
+iv. System shall redirect unauthenticated users to login page
+b. Mood Capture
+i. System shall provide 6 manual mood buttons for mood selection
+ii. System shall provide webcam scanning using face-api.js
+iii. System shall run face-api.js entirely in the browser — no image data sent to server
+iv. System shall show a confirmation step before saving any mood
+v. System shall handle "no face detected" gracefully
+vi. System shall handle "camera permission denied" gracefully
+c. AI Recommendations
+i. System shall call LLM only after mood is confirmed
+ii. System shall send user's current mood to LLM
+iii. System shall send user's last 3 journal entries as context to LLM
+iv. System shall stream AI response back to UI in real time
+v. System shall generate exactly 3 recommendations — music, activity, reflection
+vi. System shall save recommendations to database linked to journal entry
+d. Journal
+i. System shall create a journal entry on every mood scan with timestamp, mood, note, recommendations
+ii. System shall allow users to view their full journal history
+iii. System shall allow filtering journal by mood
+iv. System shall allow users to add or edit a note after the fact
+v. System shall allow users to delete journal entries
+e. Dashboard
+i. System shall display most common mood this week
+ii. System shall display a 7-day mood timeline chart
+iii. System shall display total number of entries
+f. Account
+i. System shall allow users to change their password
+ii. System shall allow users to export journal as JSON
+iii. System shall allow users to delete their account
+iv. System shall cascade delete all user data on account deletion
+2. Non-Functional Requirements
+a. Security
+i. Webcam data shall never leave the browser
+ii. Passwords shall be hashed with bcrypt
+iii. All journal and recommendation queries shall filter by logged-in user's ID on server
+iv. Client-supplied user_id shall never be trusted
+v. All user input shall be validated with Zod before hitting the database
+vi. All secrets shall be stored in .env file and never committed to GitHub
+b. Performance
+i. App shall work on desktop and mobile Chrome
+ii. AI recommendations shall stream in real time without page reload
+c. Privacy
+i. face-api.js runs client-side only
+ii. Only mood label is sent to server, never raw webcam data
+iii. Account deletion removes all data permanently
