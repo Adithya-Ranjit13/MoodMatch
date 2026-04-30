@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Mood {
+  happy
+  sad
+  stressed
+  calm
+  energetic
+  tired
+}
+
+enum MoodSource {
+  webcam
+  manual
+}
+
+enum RecommendationCategory {
+  music
+  activity
+  reflection
+}
+
+model User {
+  id             String         @id @default(cuid())
+  email          String         @unique
+  hashedPassword String?
+  name           String?
+  emailVerified  DateTime?
+  createdAt      DateTime       @default(now())
+  accounts       Account[]
+  sessions       Session[]
+  journalEntries JournalEntry[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model JournalEntry {
+  id              String           @id @default(cuid())
+  userId          String
+  mood            Mood
+  source          MoodSource
+  confidenceScore Float?
+  userNote        String?
+  createdAt       DateTime         @default(now())
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recommendations Recommendation[]
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Recommendation {
+  id             String                 @id @default(cuid())
+  journalEntryId String
+  category       RecommendationCategory
+  content        String
+  liked          Boolean?
+  journalEntry   JournalEntry           @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+}
