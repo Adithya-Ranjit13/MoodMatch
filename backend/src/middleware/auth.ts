@@ -1,11 +1,35 @@
-import { Router } from "express";
-import { signup, login, verifyEmail, logout } from "../controllers/authController.js";
+import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
 
-const router = Router();
+export interface AuthRequest extends Request {
+  userId?: string;
+}
 
-router.post("/signup", signup);
-router.post("/login", login);
-router.get("/verify", verifyEmail);
-router.post("/logout", logout);
+export function authMiddleware(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): void {
+  try {
+    const authHeader = req.headers.authorization;
 
-export default router;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      res.status(401).json({ error: "No token provided" });
+      return;
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    const payload = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
+
+    if (!payload) {
+      res.status(401).json({ error: "Invalid token" });
+      return;
+    }
+
+    req.userId = payload.userId;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: "Invalid or expired token" });
+  }
+}

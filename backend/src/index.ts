@@ -20,7 +20,7 @@ app.get("/", (req, res) => {
 
 // Routes
 app.use("/api/auth", authRoutes);
-
+console.log("Before listen");
 app.listen(5000, () => {
   console.log("Server running on port 5000");
 });
