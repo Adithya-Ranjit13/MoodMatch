@@ -107,25 +107,23 @@ export async function login(req: Request, res: Response): Promise<void> {
 
 // ─── VERIFY EMAIL ─────────────────────────────────────────
 export async function verifyEmail(req: Request, res: Response): Promise<void> {
-  try {
-    const token = req.query.token as string;
+  const frontend = process.env.FRONTEND_URL;
+  const redirect = (params: string) =>
+    res.redirect(`${frontend}/verify-email?${params}`);
 
-    if (!token) {
-      res.status(400).json({ error: "Token is required" });
-      return;
-    }
+  try {
+    const token = req.query.token as string | undefined;
+    if (!token) return redirect("status=missing");
 
     const result = await verifyEmailToken(token);
 
-    if (result.error) {
-      res.status(400).json({ error: result.error });
-      return;
-    }
+    if (result.error === "Token expired") return redirect("status=expired");
+    if (result.error) return redirect("status=invalid");
 
-    res.status(200).json({ success: true, message: "Email verified successfully!" });
+    return redirect("status=ok");
   } catch (error) {
     console.error("Verify email error:", error);
-    res.status(500).json({ error: "Something went wrong. Please try again." });
+    return redirect("status=error");
   }
 }
 

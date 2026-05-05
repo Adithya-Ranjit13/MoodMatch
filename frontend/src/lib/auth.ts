@@ -1,8 +1,5 @@
 import NextAuth from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
-import { db } from "./db";
 import { z } from "zod";
 
 const loginSchema = z.object({
@@ -11,7 +8,6 @@ const loginSchema = z.object({
 });
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(db),
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
@@ -23,7 +19,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!parsed.success) return null;
 
         try {
-          // Call Express backend to verify login
           const response = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
             {
@@ -37,10 +32,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           );
 
           const data = await response.json();
-
           if (!response.ok) return null;
 
-          // Return user object for Auth.js session
           return {
             id: data.user.id,
             name: data.user.name,
