@@ -1,5 +1,6 @@
 import express from "express";
 import authRoutes from "./routes/auth";
+import moodRoutes from "./routes/mood";
 import cors from "cors";
 import dotenv from "dotenv";
 
@@ -13,14 +14,13 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Health check
 app.get("/", (req, res) => {
   res.json({ message: "MoodMatch API is running!" });
 });
 
-// Routes
 app.use("/api/auth", authRoutes);
-console.log("Before listen");
+app.use("/api/mood", moodRoutes);
+
 app.listen(5000, () => {
   console.log("Server running on port 5000");
 });

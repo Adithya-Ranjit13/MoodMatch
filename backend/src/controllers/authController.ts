@@ -42,13 +42,17 @@ export async function signup(req: Request, res: Response): Promise<void> {
 
     const hashedPassword = await bcrypt.hash(password, 12);
     await db.user.create({ data: { name, email, hashedPassword } });
-    console.log("User created!");  // ← add this
+    console.log("User created!");
 
-    const token = await generateVerificationToken(email);
-    console.log("Verification URL:", `${process.env.FRONTEND_URL}/verify-email?token=${token}`);
-
-    await sendVerificationEmail(email, token);
-    console.log("Email sent!");  // ← add this
+    try {
+      const token = await generateVerificationToken(email);
+      console.log("Token generated:", token);
+      
+      await sendVerificationEmail(email, token);
+      console.log("Email sent!");
+    } catch (tokenError) {
+      console.error("Token/Email error:", tokenError);
+    }
 
     res.status(201).json({
       success: true,

@@ -11,6 +11,9 @@ export default function SignupPage() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   async function handleSubmit(formData: FormData) {
     setLoading(true);
     setError("");
@@ -18,10 +21,15 @@ export default function SignupPage() {
 
     const name = formData.get("name");
     const email = formData.get("email");
-    const password = formData.get("password");
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
 
     try {
-      const res = await fetch("http://localhost:5000/auth/signup", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -40,7 +48,6 @@ export default function SignupPage() {
       } else {
         setSuccess("Check your email!");
       }
-
     } catch (err) {
       console.error(err);
       setError("Something went wrong");
@@ -50,10 +57,14 @@ export default function SignupPage() {
   }
 
   return (
-<div className="min-h-screen flex items-center justify-center bg-black px-4 py-8">
-  <div className="w-full max-w-md p-6 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl shadow-black">
-        <h1 className="text-3xl font-bold text-white mb-2">Create account</h1>
-        <p className="text-slate-400 mb-8">Start tracking your mood today</p>
+    <div className="min-h-screen flex items-center justify-center bg-black px-4 py-8">
+      <div className="w-full max-w-md p-6 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl shadow-black">
+        <h1 className="text-3xl font-bold text-white mb-2">
+          Create account
+        </h1>
+        <p className="text-slate-400 mb-8">
+          Start tracking your mood today
+        </p>
 
         {success ? (
           <div className="text-center py-6">
@@ -68,8 +79,11 @@ export default function SignupPage() {
           </div>
         ) : (
           <form action={handleSubmit} className="space-y-5">
+            {/* Name */}
             <div>
-              <Label htmlFor="name" className="text-slate-300">Name</Label>
+              <Label htmlFor="name" className="text-slate-300">
+                Name
+              </Label>
               <Input
                 id="name"
                 name="name"
@@ -79,8 +93,12 @@ export default function SignupPage() {
                 placeholder="Your name"
               />
             </div>
+
+            {/* Email */}
             <div>
-              <Label htmlFor="email" className="text-slate-300">Email</Label>
+              <Label htmlFor="email" className="text-slate-300">
+                Email
+              </Label>
               <Input
                 id="email"
                 name="email"
@@ -90,21 +108,70 @@ export default function SignupPage() {
                 placeholder="you@example.com"
               />
             </div>
+
+            {/* Password */}
             <div>
-              <Label htmlFor="password" className="text-slate-300">Password</Label>
+              <Label htmlFor="password" className="text-slate-300">
+                Password
+              </Label>
               <Input
                 id="password"
                 name="password"
                 type="password"
                 required
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setError("");
+                }}
                 className="mt-1 bg-slate-800 border-slate-700 text-white"
                 placeholder="Min. 6 characters"
               />
             </div>
 
+            {/* Confirm Password */}
+            <div>
+              <Label htmlFor="confirmPassword" className="text-slate-300">
+                Confirm Password
+              </Label>
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  setError("");
+                }}
+                className="mt-1 bg-slate-800 border-slate-700 text-white"
+                placeholder="Re-enter password"
+              />
+            </div>
+
+            {/* Live mismatch message */}
+            {password &&
+              confirmPassword &&
+              password !== confirmPassword && (
+                <p className="text-red-400 text-sm">
+                  Passwords do not match
+                </p>
+              )}
+
+            {/* API error */}
             {error && <p className="text-red-400 text-sm">{error}</p>}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            {/* Submit */}
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={
+                loading ||
+                !password ||
+                !confirmPassword ||
+                password !== confirmPassword
+              }
+            >
               {loading ? "Creating account..." : "Sign up"}
             </Button>
           </form>

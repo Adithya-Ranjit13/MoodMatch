@@ -1,4 +1,3 @@
-import { verifyToken } from "@/lib/token";
 import Link from "next/link";
 
 export default async function VerifyEmailPage({
@@ -11,25 +10,47 @@ export default async function VerifyEmailPage({
   if (!token) {
     return (
       <VerifyLayout>
-        <p className="text-red-400">Invalid verification link.</p>
+        <p className="text-destructive">Invalid verification link.</p>
       </VerifyLayout>
     );
   }
 
-  const result = await verifyToken(token);
-
+  // const response = await fetch(
+  //   `${process.env.BACKEND_URL}/api/auth/verify?token=${token}`
+  // );
+  // const result = await response.json();
+let result;
+  try {
+    const response = await fetch(
+      `${process.env.BACKEND_URL}/api/auth/verify?token=${token}`
+    );
+    result = await response.json();
+  } catch (error) {
+    return (
+      <VerifyLayout>
+        <div className="text-center">
+          <div className="text-5xl mb-4">❌</div>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Server Error</h2>
+          <p className="text-muted-foreground mb-6">Could not connect to server. Make sure backend is running.</p>
+          <Link href="/signup" className="bg-primary text-white px-6 py-3 rounded-lg font-semibold">
+            Back to Signup
+          </Link>
+        </div>
+      </VerifyLayout>
+    );
+  }
   return (
     <VerifyLayout>
       {result.success ? (
         <div className="text-center">
           <div className="text-5xl mb-4">✅</div>
-          <h2 className="text-2xl font-bold text-white mb-2">Email Verified!</h2>
-          <p className="text-slate-400 mb-6">
+          <h2 className="text-2xl font-bold text-foreground mb-2">Email Verified!</h2>
+          <p className="text-muted-foreground mb-6">
             Your account is ready. You can now log in.
           </p>
           <Link
             href="/login"
-            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition"
+            className="bg-primary hover:opacity-90 text-white px-6 py-3 rounded-lg font-semibold transition"
           >
             Go to Login
           </Link>
@@ -37,17 +58,17 @@ export default async function VerifyEmailPage({
       ) : (
         <div className="text-center">
           <div className="text-5xl mb-4">❌</div>
-          <h2 className="text-2xl font-bold text-white mb-2">
+          <h2 className="text-2xl font-bold text-foreground mb-2">
             {result.error === "Token expired" ? "Link Expired" : "Invalid Link"}
           </h2>
-          <p className="text-slate-400 mb-6">
+          <p className="text-muted-foreground mb-6">
             {result.error === "Token expired"
               ? "This verification link has expired. Please sign up again."
               : "This verification link is invalid."}
           </p>
           <Link
             href="/signup"
-            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition"
+            className="bg-primary hover:opacity-90 text-white px-6 py-3 rounded-lg font-semibold transition"
           >
             Back to Signup
           </Link>
@@ -59,8 +80,8 @@ export default async function VerifyEmailPage({
 
 function VerifyLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black px-4">
-      <div className="w-full max-w-md p-8 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl shadow-black">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <div className="w-full max-w-md p-8 rounded-2xl bg-card border border-border shadow-2xl">
         {children}
       </div>
     </div>

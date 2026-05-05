@@ -11,15 +11,43 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(formData: FormData) {
-    setLoading(true);
-    setError("");
-    const result = await login(formData);
-    if (result?.error) {
-      setError(result.error);
-      setLoading(false);
+    async function handleSubmit(formData: FormData) {
+      setLoading(true);
+      setError("");
+
+      try {
+        // Call backend directly for JWT token
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: formData.get("email"),
+            password: formData.get("password"),
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setError(data.error || "Login failed");
+          setLoading(false);
+          return;
+        }
+
+        // Save JWT token
+        localStorage.setItem("moodmatch_token", data.token);
+
+        // Also sign in with Auth.js for session
+        const result = await login(formData);
+        if (result?.error) {
+          setError(result.error);
+          setLoading(false);
+        }
+      } catch (err) {
+        setError("Something went wrong");
+        setLoading(false);
+      }
     }
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black px-4 py-8">
