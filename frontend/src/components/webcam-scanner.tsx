@@ -31,6 +31,7 @@ export default function WebcamScanner({ onMoodDetected }: WebcamScannerProps) {
 
   useEffect(() => {
     loadModels();
+    return () => stopCamera();
   }, []);
 
   async function loadModels() {
@@ -38,7 +39,8 @@ export default function WebcamScanner({ onMoodDetected }: WebcamScannerProps) {
       await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
       await faceapi.nets.faceExpressionNet.loadFromUri("/models");
       setLoading(false);
-      startCamera();
+
+      await startCamera();
     } catch (err) {
       setError("Failed to load face detection models.");
       setLoading(false);
@@ -57,12 +59,19 @@ export default function WebcamScanner({ onMoodDetected }: WebcamScannerProps) {
       setError("Camera permission denied. Please use manual mood picker.");
     }
   }
-
+  function stopCamera() {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
+    }
+  }
   async function scanMood() {
     if (!videoRef.current) return;
     setScanning(true);
     setError("");
     setSnapshotsTaken(0);
+
 
     const TOTAL_SNAPS = 16;
     const DURATION_MS = 2000;
@@ -118,7 +127,10 @@ export default function WebcamScanner({ onMoodDetected }: WebcamScannerProps) {
       )[0];
 
       const mood = expressionToMood[dominant] ?? "calm";
-      onMoodDetected(mood);
+      stopCamera();
+      setTimeout(() => {
+        onMoodDetected(mood);
+      }, 50);
     } catch (err) {
       setError("Scan failed. Please try again.");
     }

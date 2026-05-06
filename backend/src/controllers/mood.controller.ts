@@ -8,6 +8,7 @@ const moodSchema = z.object({
   mood: z.enum(["happy", "sad", "stressed", "calm", "energetic", "tired"]),
   source: z.enum(["webcam", "manual"]),
   confidenceScore: z.number().optional(),
+  note: z.string().max(500).optional(),
 });
 
 const groq = new Groq({
@@ -24,7 +25,7 @@ export async function saveMood(req: AuthRequest, res: Response): Promise<void> {
       return;
     }
 
-    const { mood, source, confidenceScore } = parsed.data;
+    const { mood, source, confidenceScore, note } = parsed.data;
     const userId = req.userId!;
 
     // Get last 3 journal entries for context
@@ -32,12 +33,18 @@ export async function saveMood(req: AuthRequest, res: Response): Promise<void> {
       where: { userId },
       orderBy: { createdAt: "desc" },
       take: 3,
+      include: { recommendations: true }, // 👈 IMPORTANT
     });
 
     const context = recentEntries.length > 0
-      ? recentEntries.map((entry) =>
-          `${entry.createdAt.toDateString()}: felt ${entry.mood}`
-        ).join("\n")
+      ? recentEntries.map((entry) => {
+          const recs = entry.recommendations
+            .map((r) => `${r.category}: ${r.content}`)
+            .join(", ");
+
+          return `${entry.createdAt.toDateString()}: felt ${entry.mood}
+          Suggestions given: ${recs}`;
+        }).join("\n\n")
       : "This is the user's first mood entry.";
 
     // Call Groq AI
@@ -52,20 +59,26 @@ export async function saveMood(req: AuthRequest, res: Response): Promise<void> {
         {
           role: "user",
           content: `The user is feeling ${mood} right now.
+User's note (very important context):
+${note || "No additional note provided."}
 
-Recent mood history:
+Recent mood history and past suggestions:
 ${context}
 
-Give exactly 3 personalized recommendations in this JSON format:
+IMPORTANT:
+- Do NOT repeat or closely resemble past suggestions
+- Provide fresh, new ideas
+
+Return JSON:
 {
   "recommendations": [
-    { "category": "music", "content": "specific song or playlist suggestion" },
-    { "category": "activity", "content": "specific activity suggestion" },
-    { "category": "reflection", "content": "a short supportive message" }
+    { "category": "music", "content": "..." },
+    { "category": "activity", "content": "..." },
+    { "category": "reflection", "content": "..." }
   ]
 }
 
-Only respond with the JSON, nothing else.`,
+Only respond with JSON.`,
         },
       ],
     });
@@ -81,6 +94,7 @@ Only respond with the JSON, nothing else.`,
         mood,
         source,
         confidenceScore,
+        userNote: note,
         recommendations: {
           create: aiData.recommendations.map((rec: {
             category: string;

@@ -1,6 +1,7 @@
 import express from "express";
 import authRoutes from "./routes/auth";
 import moodRoutes from "./routes/mood";
+import journalRoutes from "./routes/journal";
 import cors from "cors";
 import dotenv from "dotenv";
 
@@ -20,6 +21,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/mood", moodRoutes);
+app.use("/api/journal", journalRoutes);
 
 app.listen(5000, () => {
   console.log("Server running on port 5000");

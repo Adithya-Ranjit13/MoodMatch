@@ -4,6 +4,7 @@ import { useState } from "react";
 import WebcamScanner from "@/components/webcam-scanner";
 import MoodPicker from "@/components/mood-picker";
 import { getToken } from "@/lib/token";
+import Link from "next/link";
 
 type Mood = "happy" | "sad" | "stressed" | "calm" | "energetic" | "tired";
 
@@ -23,13 +24,21 @@ const moodEmoji: Record<Mood, string> = {
   tired: "😴",
 };
 
+const categoryIcon: Record<string, string> = {
+  music: "🎵",
+  activity: "🏃",
+  reflection: "💭",
+};
+
 export default function ScanPage() {
   const [detectedMood, setDetectedMood] = useState<Mood | null>(null);
   const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
   const [mode, setMode] = useState<"webcam" | "manual">("webcam");
   const [step, setStep] = useState<"scan" | "confirm" | "results">("scan");
   const [loading, setLoading] = useState(false);
+  const [note, setNote] = useState("");
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [liked, setLiked] = useState<Record<string, boolean | null>>({});
 
   function handleMoodDetected(mood: Mood) {
     setDetectedMood(mood);
@@ -53,11 +62,12 @@ export default function ScanPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           mood: selectedMood,
           source: mode,
+          note,
         }),
       });
 
@@ -76,11 +86,34 @@ export default function ScanPage() {
     setLoading(false);
   }
 
-  const categoryIcon: Record<string, string> = {
-    music: "🎵",
-    activity: "🏃",
-    reflection: "💭",
-  };
+  async function handleToggleLiked(recId: string, value: boolean) {
+    try {
+      const token = getToken();
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/journal/recommendation/${recId}/liked`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            liked: liked[recId] === value ? null : value,
+          }),
+        }
+      );
+
+      const data = await res.json();
+      if (res.ok) {
+        setLiked((prev) => ({
+          ...prev,
+          [recId]: data.recommendation.liked,
+        }));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   return (
     <div className="max-w-2xl mx-auto mt-8">
@@ -145,6 +178,9 @@ export default function ScanPage() {
               <p className="text-xl font-bold text-primary capitalize">
                 {detectedMood}
               </p>
+              <p className="text-muted-foreground text-xs mt-2">
+                💡 Feeling energetic or tired? Override below!
+              </p>
             </div>
           )}
 
@@ -157,10 +193,28 @@ export default function ScanPage() {
             onMoodSelect={setSelectedMood}
           />
 
-          <div className="flex gap-3 mt-6">
+          {/* Note Input */}
+          <div className="mt-6">
+            <label className="text-sm font-medium text-foreground mb-1 block">
+              Add a note (optional)
+            </label>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              maxLength={500}
+              rows={3}
+              className="w-full bg-background border border-border rounded-lg p-3 text-foreground text-sm resize-none focus:outline-none focus:border-primary transition-colors"
+              placeholder="How are you feeling? What's on your mind?"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              {note.length}/500
+            </p>
+          </div>
+
+          <div className="flex gap-3 mt-4">
             <button
               onClick={() => setStep("scan")}
-              className="flex-1 border border-border text-muted-foreground py-3 rounded-xl font-semibold transition-all duration-300 hover:bg-primary hover:text-primary-foreground"
+              className="flex-1 border border-border text-muted-foreground py-3 rounded-xl font-semibold transition-all duration-300 hover:bg-card"
             >
               ← Back
             </button>
@@ -193,27 +247,54 @@ export default function ScanPage() {
               key={rec.id}
               className="bg-card border border-border rounded-2xl p-5 transition-all duration-300 hover:border-primary hover:shadow-lg hover:shadow-primary/10"
             >
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">{categoryIcon[rec.category]}</span>
-                <span className="text-sm font-semibold text-primary capitalize">
-                  {rec.category}
-                </span>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">{categoryIcon[rec.category]}</span>
+                  <span className="text-sm font-semibold text-primary capitalize">
+                    {rec.category}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() =>
+                      handleToggleLiked(
+                        rec.id,
+                        liked[rec.id] === true ? false : true
+                      )
+                    }
+                    className={`text-xl transition-all duration-300 hover:scale-125 ${
+                      liked[rec.id] === null || liked[rec.id] === undefined
+                        ? "opacity-40"
+                        : "opacity-100"
+                    }`}
+                  >
+                    {liked[rec.id] === false ? "👎" : "👍"}
+                  </button>
+                </div>
               </div>
               <p className="text-foreground">{rec.content}</p>
             </div>
           ))}
 
-          <button
+          {/* <button
             onClick={() => {
               setStep("scan");
               setDetectedMood(null);
               setSelectedMood(null);
               setRecommendations([]);
+              setNote("");
+              setLiked({});
             }}
             className="w-full mt-4 border border-border text-muted-foreground py-3 rounded-xl font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary"
           >
             Scan Again 🔄
-          </button>
+          </button> */}
+          <Link
+            href="/dashboard"
+            className="block w-full mt-4 border border-border text-muted-foreground py-3 rounded-xl font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary text-center"
+          >
+            Go to Dashboard 🏠
+          </Link>
         </div>
       )}
     </div>
