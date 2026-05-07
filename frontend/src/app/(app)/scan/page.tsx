@@ -15,6 +15,13 @@ interface Recommendation {
   liked: boolean | null;
 }
 
+interface YoutubeMedia {
+  id: string;
+  type: string;
+  title: string;
+  youtubeId: string;
+}
+
 const moodEmoji: Record<Mood, string> = {
   happy: "😊",
   sad: "😢",
@@ -39,6 +46,7 @@ export default function ScanPage() {
   const [note, setNote] = useState("");
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [liked, setLiked] = useState<Record<string, boolean | null>>({});
+  const [youtubeMedia, setYoutubeMedia] = useState<YoutubeMedia[]>([]);
 
   function handleMoodDetected(mood: Mood) {
     setDetectedMood(mood);
@@ -75,6 +83,7 @@ export default function ScanPage() {
 
       if (res.ok) {
         setRecommendations(data.entry.recommendations);
+  setYoutubeMedia(data.entry.youtubeMedia ?? []);
         setStep("results");
       } else {
         console.error(data.error);
@@ -242,39 +251,61 @@ export default function ScanPage() {
             </p>
           </div>
 
-          {recommendations.map((rec) => (
-            <div
-              key={rec.id}
-              className="bg-card border border-border rounded-2xl p-5 transition-all duration-300 hover:border-primary hover:shadow-lg hover:shadow-primary/10"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">{categoryIcon[rec.category]}</span>
-                  <span className="text-sm font-semibold text-primary capitalize">
-                    {rec.category}
-                  </span>
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* LEFT - Recommendations */}
+            <div className="space-y-4">
+              {recommendations.map((rec) => (
+                <div
+                  key={rec.id}
+                  className="bg-card border border-border rounded-2xl p-5 transition-all duration-300 hover:border-primary hover:shadow-lg hover:shadow-primary/10"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">{categoryIcon[rec.category]}</span>
+                      <span className="text-sm font-semibold text-primary capitalize">
+                        {rec.category}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() =>
+                          handleToggleLiked(
+                            rec.id,
+                            liked[rec.id] === true ? false : true
+                          )
+                        }
+                        className={`text-xl transition-all duration-300 hover:scale-125 ${
+                          liked[rec.id] === null || liked[rec.id] === undefined
+                            ? "opacity-40"
+                            : "opacity-100"
+                        }`}
+                      >
+                        {liked[rec.id] === false ? "👎" : "👍"}
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-foreground">{rec.content}</p>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() =>
-                      handleToggleLiked(
-                        rec.id,
-                        liked[rec.id] === true ? false : true
-                      )
-                    }
-                    className={`text-xl transition-all duration-300 hover:scale-125 ${
-                      liked[rec.id] === null || liked[rec.id] === undefined
-                        ? "opacity-40"
-                        : "opacity-100"
-                    }`}
-                  >
-                    {liked[rec.id] === false ? "👎" : "👍"}
-                  </button>
-                </div>
-              </div>
-              <p className="text-foreground">{rec.content}</p>
+              ))}
             </div>
-          ))}
+
+            {/* RIGHT - YouTube */}
+            <div className="space-y-4">
+              {youtubeMedia.map((media) => (
+                <div key={media.id}>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    {media.type === "music" ? "🎵" : "🎬"} {media.title}
+                  </p>
+                  <iframe
+                    className="w-full rounded-lg"
+                    height="200"
+                    src={`https://www.youtube.com/embed/${media.youtubeId}`}
+                    allowFullScreen
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
 
           {/* <button
             onClick={() => {

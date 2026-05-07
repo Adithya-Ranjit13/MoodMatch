@@ -80,6 +80,7 @@ model JournalEntry {
   createdAt       DateTime         @default(now())
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   recommendations Recommendation[]
+  youtubeMedia    YoutubeMedia[]
   @@index([userId])
   @@index([createdAt])
 }
@@ -91,4 +92,12 @@ model Recommendation {
   content        String
   liked          Boolean?
   journalEntry   JournalEntry           @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+}
+model YoutubeMedia {
+  id             String       @id @default(cuid())
+  journalEntryId String
+  type           String
+  title          String
+  youtubeId      String
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
 }

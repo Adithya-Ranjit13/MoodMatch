@@ -1,8 +1,9 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { z } from "zod";
 import Groq from "groq-sdk";
 import { db } from "../lib/db";
 import { AuthRequest } from "../middleware/auth";
+import { searchYoutubeMusic, searchYoutubeVideo } from "../lib/youtube";
 
 const moodSchema = z.object({
   mood: z.enum(["happy", "sad", "stressed", "calm", "energetic", "tired"]),
@@ -17,8 +18,6 @@ const groq = new Groq({
 
 export async function saveMood(req: AuthRequest, res: Response): Promise<void> {
   try {
-    console.log("Body:", req.body);
-    console.log("Headers:", req.headers);
     const parsed = moodSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ error: parsed.error.issues[0].message });
@@ -33,7 +32,7 @@ export async function saveMood(req: AuthRequest, res: Response): Promise<void> {
       where: { userId },
       orderBy: { createdAt: "desc" },
       take: 3,
-      include: { recommendations: true }, // 👈 IMPORTANT
+      include: { recommendations: true },
     });
 
     const context = recentEntries.length > 0
@@ -41,7 +40,6 @@ export async function saveMood(req: AuthRequest, res: Response): Promise<void> {
           const recs = entry.recommendations
             .map((r) => `${r.category}: ${r.content}`)
             .join(", ");
-
           return `${entry.createdAt.toDateString()}: felt ${entry.mood}
           Suggestions given: ${recs}`;
         }).join("\n\n")
@@ -51,6 +49,7 @@ export async function saveMood(req: AuthRequest, res: Response): Promise<void> {
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       max_tokens: 1024,
+      temperature: 0.8,
       messages: [
         {
           role: "system",
@@ -59,8 +58,7 @@ export async function saveMood(req: AuthRequest, res: Response): Promise<void> {
         {
           role: "user",
           content: `The user is feeling ${mood} right now.
-User's note (very important context):
-${note || "No additional note provided."}
+User's note: ${note || "No additional note provided."}
 
 Recent mood history and past suggestions:
 ${context}
@@ -72,10 +70,11 @@ IMPORTANT:
 Return JSON:
 {
   "recommendations": [
-    { "category": "music", "content": "..." },
+    { "category": "music", "content": "Song title by Artist name" },
     { "category": "activity", "content": "..." },
     { "category": "reflection", "content": "..." }
-  ]
+  ],
+  "videoSearch": "specific helpful activity, meditation or motivational video to search on YouTube"
 }
 
 Only respond with JSON.`,
@@ -83,11 +82,23 @@ Only respond with JSON.`,
       ],
     });
 
-    // Parse AI response
     const aiText = completion.choices[0].message.content ?? "";
     const aiData = JSON.parse(aiText);
 
-    // Save journal entry + recommendations
+    // Use the music recommendation content as the search query
+    const musicRec = aiData.recommendations.find(
+      (r: { category: string }) => r.category === "music"
+    );
+
+    const [music, video] = await Promise.all([
+      searchYoutubeMusic(musicRec?.content ?? aiData.musicSearch),
+      searchYoutubeVideo(aiData.videoSearch),
+    ]);
+
+    console.log("Music:", music);
+    console.log("Video:", video);
+
+    // Save journal entry + recommendations + youtube media
     const journalEntry = await db.journalEntry.create({
       data: {
         userId,
@@ -104,8 +115,25 @@ Only respond with JSON.`,
             content: rec.content,
           })),
         },
+        youtubeMedia: {
+          create: [
+            ...(music ? [{
+              type: "music",
+              title: music.title,
+              youtubeId: music.youtubeId,
+            }] : []),
+            ...(video ? [{
+              type: "video",
+              title: video.title,
+              youtubeId: video.youtubeId,
+            }] : []),
+          ],
+        },
       },
-      include: { recommendations: true },
+      include: {
+        recommendations: true,
+        youtubeMedia: true,
+      },
     });
 
     res.status(201).json({
