@@ -4,6 +4,7 @@ import moodRoutes from "./routes/mood";
 import journalRoutes from "./routes/journal";
 import cors from "cors";
 import dotenv from "dotenv";
+import dashboardRoutes from "./routes/dashboard";//TRIAL123
 
 dotenv.config();
 
@@ -22,6 +23,8 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/mood", moodRoutes);
 app.use("/api/journal", journalRoutes);
+
+app.use("/api/dashboard", dashboardRoutes);//TRIAL123
 
 app.listen(5000, () => {
   console.log("Server running on port 5000");

@@ -22,17 +22,69 @@ interface WebcamScannerProps {
 
 export default function WebcamScanner({ onMoodDetected }: WebcamScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [snapshotsTaken, setSnapshotsTaken] = useState(0);
   const [error, setError] = useState("");
   const [permission, setPermission] = useState<"pending" | "granted" | "denied">("pending");
+  const [faceCount, setFaceCount] = useState(0);
+  const [canScan, setCanScan] = useState(false);
 
   useEffect(() => {
     loadModels();
     return () => stopCamera();
   }, []);
+  useEffect(() => {
+    if (loading || permission !== "granted") return;
+
+    const interval = setInterval(async () => {
+      if (!videoRef.current || !canvasRef.current) return;
+
+      const detections = await faceapi.detectAllFaces(
+        videoRef.current,
+        new faceapi.TinyFaceDetectorOptions()
+      );
+
+      setFaceCount(detections.length);
+      setCanScan(detections.length === 1);
+
+      const canvas = canvasRef.current;
+      const video = videoRef.current;
+
+      const displaySize = {
+        width: video.videoWidth,
+        height: video.videoHeight,
+      };
+
+      faceapi.matchDimensions(canvas, displaySize);
+
+      const resizedDetections = faceapi.resizeResults(
+        detections,
+        displaySize
+      );
+
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      resizedDetections.forEach((det) => {
+        const { x, y, width, height } = det.box;
+
+        ctx.strokeStyle =
+          detections.length === 1 ? "#22c55e" : "#ef4444";
+
+        ctx.lineWidth = 3;
+
+        ctx.strokeRect(x, y, width, height);
+      });
+    }, 250);
+
+    return () => clearInterval(interval);
+  }, [loading, permission]);
 
   async function loadModels() {
     try {
@@ -161,13 +213,18 @@ export default function WebcamScanner({ onMoodDetected }: WebcamScannerProps) {
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="relative rounded-2xl overflow-hidden border border-border">
-        <video
-          ref={videoRef}
-          autoPlay
-          muted
-          playsInline
-          className="w-80 h-60 object-cover"
-        />
+    <video
+      ref={videoRef}
+      autoPlay
+      muted
+      playsInline
+      className="w-80 h-60 object-cover"
+    />
+
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-80 h-60"
+    />
 
         {/* Countdown overlay */}
         {scanning && countdown > 0 && (
@@ -199,11 +256,21 @@ export default function WebcamScanner({ onMoodDetected }: WebcamScannerProps) {
       )}
 
       {error && <p className="text-destructive text-sm">{error}</p>}
+      {faceCount === 0 && !scanning && (
+        <p className="text-yellow-500 text-sm">
+          No face detected
+        </p>
+      )}
 
+      {faceCount > 1 && !scanning && (
+        <p className="text-red-500 text-sm text-center">
+          Multiple faces detected. Please ensure only one face is visible.
+        </p>
+      )}
       <button
         onClick={scanMood}
-        disabled={scanning}
-        className="bg-primary hover:opacity-90 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 disabled:opacity-50"
+        disabled={scanning ||!canScan}
+        className="bg-primary hover:opacity-90 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {scanning ? "Scanning..." : "Scan My Mood 🎭"}
       </button>
