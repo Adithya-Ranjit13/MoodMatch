@@ -46,7 +46,10 @@ export default function ScanPage() {
   const [note, setNote] = useState("");
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [liked, setLiked] = useState<Record<string, boolean | null>>({});
-  const [youtubeMedia, setYoutubeMedia] = useState<YoutubeMedia[]>([]);
+  const [youtubeMedia, setYoutubeMedia] = useState<YoutubeMedia[]>([]);// Mode toggle buttons — add stopCamera trigger by resetting a key
+  const [webcamKey, setWebcamKey] = useState(0);
+
+
 
   function handleMoodDetected(mood: Mood) {
     // immediately leave scan screen
@@ -151,7 +154,7 @@ export default function ScanPage() {
             📸 Webcam Scan
           </button>
           <button
-            onClick={() => { setMode("manual"); setDetectedMood(null); }}
+             onClick={() => { setMode("manual"); setDetectedMood(null); setWebcamKey(k => k + 1); }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300
               ${mode === "manual"
                 ? "bg-primary text-white"
@@ -167,7 +170,7 @@ export default function ScanPage() {
       {step === "scan" && (
         <div className="bg-card border border-border rounded-2xl p-6">
           {mode === "webcam" ? (
-            <WebcamScanner onMoodDetected={handleMoodDetected} />
+            <WebcamScanner key={webcamKey} onMoodDetected={handleMoodDetected} />
           ) : (
             <>
               <p className="text-foreground font-medium mb-4">

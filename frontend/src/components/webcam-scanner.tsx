@@ -101,9 +101,12 @@ export default function WebcamScanner({ onMoodDetected }: WebcamScannerProps) {
     }
   }
 
+  const streamRef = useRef<MediaStream | null>(null);
+
   async function startCamera() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      streamRef.current = stream; // store it here
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
@@ -113,10 +116,14 @@ export default function WebcamScanner({ onMoodDetected }: WebcamScannerProps) {
       setError("Camera permission denied. Please use manual mood picker.");
     }
   }
+
   function stopCamera() {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach((track) => track.stop());
+    // stop via streamRef (reliable even if videoRef is gone)
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
   }

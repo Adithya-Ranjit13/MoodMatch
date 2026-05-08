@@ -72,6 +72,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState<string | null>(null);
   const [chartWidth, setChartWidth] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -86,7 +87,17 @@ export default function DashboardPage() {
     observer.observe(chartRef.current);
     return () => observer.disconnect();
   }, []);
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
 
+    checkMobile();
+
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
   async function fetchStats() {
     try {
       const token = getToken();
@@ -209,6 +220,19 @@ export default function DashboardPage() {
                   tickLine={false}
                   axisLine={false}
                   tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+                  tickFormatter={(value) => {
+                    const date = new Date(value);
+
+                    return isMobile
+                      ? date.toLocaleDateString("en-US", {
+                          weekday: "short"
+                        })
+                      : date.toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          weekday: "short",
+                        });
+                  }}
                 />
                 <YAxis
                   domain={[0, 5]}
