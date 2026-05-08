@@ -121,16 +121,19 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto mt-8 px-4">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="max-w-125">
+          <h1 className="text-3xl font-bold text-foreground break-words leading-tight">
             Hey, {userName ?? "there"} 👋
           </h1>
-          <p className="text-muted-foreground">Your mood overview</p>
+          <p className="text-muted-foreground">
+            Your mood overview
+          </p>
         </div>
+
         <Link
           href="/scan"
-          className="bg-primary hover:opacity-90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300"
+          className="bg-primary hover:opacity-90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 w-fit"
         >
           + Log Mood
         </Link>
@@ -169,7 +172,7 @@ export default function DashboardPage() {
 
       {/* Mood Chart */}
       <div className="rounded-2xl bg-card border border-border p-6">
-        <h2 className="text-lg font-bold text-foreground mb-6">
+        <h2 className="text-lg font-bold text-foreground mb-6 text-center sm:text-left">
           7-Day Mood Trend
         </h2>
 

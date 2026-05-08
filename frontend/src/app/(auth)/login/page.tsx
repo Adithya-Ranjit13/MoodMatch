@@ -43,7 +43,12 @@ export default function LoginPage() {
           setError(result.error);
           setLoading(false);
         }
-      } catch (err) {
+      } catch (err: any) {
+        // Ignore redirect errors from Auth.js
+        if (err?.digest?.includes("NEXT_REDIRECT")) {
+          return;
+        }
+
         setError("Something went wrong");
         setLoading(false);
       }

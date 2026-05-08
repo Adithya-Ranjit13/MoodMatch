@@ -66,6 +66,7 @@ ${context}
 IMPORTANT:
 - Do NOT repeat or closely resemble past suggestions
 - Provide fresh, new ideas
+- All suggestions must be somewhat relevant with the note provided by the user if one is provided
 
 Return JSON:
 {

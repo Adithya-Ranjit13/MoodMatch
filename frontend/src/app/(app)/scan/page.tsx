@@ -49,8 +49,12 @@ export default function ScanPage() {
   const [youtubeMedia, setYoutubeMedia] = useState<YoutubeMedia[]>([]);
 
   function handleMoodDetected(mood: Mood) {
+    // immediately leave scan screen
     setDetectedMood(mood);
     setSelectedMood(mood);
+
+    // this unmounts WebcamScanner instantly
+    // which forces camera cleanup
     setStep("confirm");
   }
 
@@ -160,13 +164,26 @@ export default function ScanPage() {
       )}
 
       {/* Webcam Scan */}
-      {mode === "webcam" && step === "scan" && (
+      {step === "scan" && (
         <div className="bg-card border border-border rounded-2xl p-6">
-          <WebcamScanner onMoodDetected={handleMoodDetected} />
+          {mode === "webcam" ? (
+            <WebcamScanner onMoodDetected={handleMoodDetected} />
+          ) : (
+            <>
+              <p className="text-foreground font-medium mb-4">
+                Pick your mood:
+              </p>
+
+              <MoodPicker
+                selectedMood={selectedMood}
+                onMoodSelect={handleMoodSelect}
+              />
+            </>
+          )}
         </div>
       )}
 
-      {/* Manual Pick */}
+      {/* Manual Pick
       {mode === "manual" && step === "scan" && (
         <div className="bg-card border border-border rounded-2xl p-6">
           <p className="text-foreground font-medium mb-4">Pick your mood:</p>
@@ -175,7 +192,7 @@ export default function ScanPage() {
             onMoodSelect={handleMoodSelect}
           />
         </div>
-      )}
+      )} */}
 
       {/* Confirm Step */}
       {step === "confirm" && (
@@ -280,7 +297,7 @@ export default function ScanPage() {
                             : "opacity-100"
                         }`}
                       >
-                        {liked[rec.id] === false ? "👎" : "👍"}
+                        {liked[rec.id] === false ? "👎" : "❤️"}
                       </button>
                     </div>
                   </div>

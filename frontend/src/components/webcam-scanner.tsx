@@ -54,9 +54,9 @@ export default function WebcamScanner({ onMoodDetected }: WebcamScannerProps) {
       const video = videoRef.current;
 
       const displaySize = {
-        width: video.videoWidth,
-        height: video.videoHeight,
-      };
+        width: video.clientWidth,
+        height: video.clientHeight,
+      };    
 
       faceapi.matchDimensions(canvas, displaySize);
 
@@ -212,19 +212,19 @@ export default function WebcamScanner({ onMoodDetected }: WebcamScannerProps) {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <div className="relative rounded-2xl overflow-hidden border border-border">
-    <video
-      ref={videoRef}
-      autoPlay
-      muted
-      playsInline
-      className="w-80 h-60 object-cover"
-    />
+      <div className="relative w-full max-w-sm aspect-4/3 rounded-2xl overflow-hidden border border-border">
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+        />
 
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 w-80 h-60"
-    />
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 w-full h-full"
+        />
 
         {/* Countdown overlay */}
         {scanning && countdown > 0 && (
