@@ -53,10 +53,12 @@ export default function WebcamScanner({ onMoodDetected }: WebcamScannerProps) {
       const canvas = canvasRef.current;
       const video = videoRef.current;
 
+      if (!canvas || !video) return;
+
       const displaySize = {
         width: video.clientWidth,
         height: video.clientHeight,
-      };    
+      };   
 
       faceapi.matchDimensions(canvas, displaySize);
 
@@ -65,7 +67,7 @@ export default function WebcamScanner({ onMoodDetected }: WebcamScannerProps) {
         displaySize
       );
 
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas?.getContext("2d");
 
       if (!ctx) return;
 

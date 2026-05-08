@@ -38,6 +38,7 @@ interface ChartPoint {
   value: number | null;
   mood: string | null;
   count: number;
+  topMoodCount: number;
 }
 
 interface Stats {
@@ -55,10 +56,10 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <p className="text-primary text-sm">
           {moodEmoji[mood]} {mood}
         </p>
-        <p className="text-muted-foreground text-xs">
-          {payload[0].payload.count}{" "}
-          {payload[0].payload.count === 1 ? "entry" : "entries"}
-        </p>
+          <p className="text-muted-foreground text-xs">
+            {payload[0].payload.topMoodCount} out of{" "}
+            {payload[0].payload.count} entries
+          </p>
       </div>
     );
   }

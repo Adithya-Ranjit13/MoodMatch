@@ -97,15 +97,43 @@ export async function getDashboardStats(
       }
     }
 
-    // Average mood value per day
-    const chart = Object.entries(days).map(([date, entries]) => ({
-      date,
-      value: entries.length > 0
-        ? Math.round(entries.reduce((sum, e) => sum + e.value, 0) / entries.length * 10) / 10
-        : null,
-      mood: entries.length > 0 ? entries[entries.length - 1].mood : null,
-      count: entries.length,
-    }));
+    const chart = Object.entries(days).map(([date, entries]) => {
+      if (entries.length === 0) {
+        return {
+          date,
+          value: null,
+          mood: null,
+          count: 0,
+          topMoodCount: 0,
+        };
+      }
+
+      // Count frequency of moods
+      const frequency: Record<string, number> = {};
+
+      for (const entry of entries) {
+        frequency[entry.mood] = (frequency[entry.mood] || 0) + 1;
+      }
+
+      // Find most frequent mood
+      let topMood = entries[0].mood;
+      let topMoodCount = frequency[topMood];
+
+      for (const mood in frequency) {
+        if (frequency[mood] > topMoodCount) {
+          topMood = mood;
+          topMoodCount = frequency[mood];
+        }
+      }
+
+      return {
+        date,
+        value: moodToNumber[topMood],
+        mood: topMood,
+        count: entries.length,
+        topMoodCount,
+      };
+    });
     
     res.status(200).json({
       success: true,
