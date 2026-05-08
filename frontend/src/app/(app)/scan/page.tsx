@@ -271,29 +271,26 @@ export default function ScanPage() {
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-6">
+          {/* Main Grid Container */}
+          <div className="grid lg:grid-cols-2 gap-6 items-stretch min-h-[500px]">
+            
             {/* LEFT - Recommendations */}
-            <div className="space-y-4">
-              {recommendations.map((rec) => (
-                <div
-                  key={rec.id}
-                  className="bg-card border border-border rounded-2xl p-5 transition-all duration-300 hover:border-primary hover:shadow-lg hover:shadow-primary/10"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">{categoryIcon[rec.category]}</span>
-                      <span className="text-sm font-semibold text-primary capitalize">
-                        {rec.category}
-                      </span>
-                    </div>
-                    <div className="flex gap-2">
+            <div className="flex flex-col h-full">
+              <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-1">
+                {recommendations.map((rec) => (
+                  <div
+                    key={rec.id}
+                    className="flex-1 flex flex-col justify-center bg-card border border-border rounded-2xl p-8 hover:border-primary transition-all min-h-[150px] shadow-sm hover:shadow-md"
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">{categoryIcon[rec.category]}</span>
+                        <span className="text-sm font-bold tracking-wider text-primary uppercase">
+                          {rec.category}
+                        </span>
+                      </div>
                       <button
-                        onClick={() =>
-                          handleToggleLiked(
-                            rec.id,
-                            liked[rec.id] === true ? false : true
-                          )
-                        }
+                        onClick={() => handleToggleLiked(rec.id, true)}
                         className={`text-xl transition-all duration-300 hover:scale-125 ${
                           liked[rec.id] === null || liked[rec.id] === undefined
                             ? "opacity-40"
@@ -303,46 +300,39 @@ export default function ScanPage() {
                         {liked[rec.id] === false ? "👎" : "❤️"}
                       </button>
                     </div>
+
+                    <p className="text-lg text-foreground leading-relaxed">
+                      {rec.content}
+                    </p>
                   </div>
-                  <p className="text-foreground">{rec.content}</p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
             {/* RIGHT - YouTube */}
-            <div className="space-y-4">
-              {youtubeMedia.map((media) => (
-                <div key={media.id}>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    {media.type === "music" ? "🎵" : "🎬"} {media.title}
-                  </p>
-                  <iframe
-                    className="w-full rounded-lg"
-                    height="200"
-                    src={`https://www.youtube.com/embed/${media.youtubeId}`}
-                    allowFullScreen
-                  />
-                </div>
-              ))}
+            <div className="flex flex-col h-full">
+              <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-1">
+                {youtubeMedia.map((media) => (
+                  <div key={media.id} className="flex-1 flex flex-col">
+                    <p className="text-sm text-muted-foreground mb-2 font-medium">
+                      {media.type === "music" ? "🎵" : "🎬"} {media.title}
+                    </p>
+
+                    <iframe
+                      className="w-full flex-1 rounded-xl border border-border min-h-[220px] shadow-sm"
+                      src={`https://www.youtube.com/embed/${media.youtubeId}`}
+                      allowFullScreen
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* <button
-            onClick={() => {
-              setStep("scan");
-              setDetectedMood(null);
-              setSelectedMood(null);
-              setRecommendations([]);
-              setNote("");
-              setLiked({});
-            }}
-            className="w-full mt-4 border border-border text-muted-foreground py-3 rounded-xl font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary"
-          >
-            Scan Again 🔄
-          </button> */}
+          {/* Action Button */}
           <Link
             href="/dashboard"
-            className="block w-full mt-4 border border-border text-muted-foreground py-3 rounded-xl font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary text-center"
+            className="block w-full mt-8 border border-border text-muted-foreground py-4 rounded-xl font-semibold transition-all duration-300 hover:bg-primary hover:text-white hover:border-primary text-center"
           >
             Go to Dashboard 🏠
           </Link>

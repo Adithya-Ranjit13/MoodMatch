@@ -263,56 +263,64 @@ export default function JournalEntryPage() {
       </div>
 
       {/* Recommendations */}
-      <div className="grid lg:grid-cols-2 gap-6 items-stretch min-h-[600px]">
-        {/* LEFT - Recommendations */}
-        <div className="flex flex-col h-full">
-          <div className="flex-1 space-y-4 overflow-y-auto pr-1">
-            {recommendations.map((rec) => (
-              <div
-                key={rec.id}
-                className="bg-card border border-border rounded-2xl p-5 hover:border-primary transition-all"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">{categoryIcon[rec.category]}</span>
-                    <span className="text-sm font-semibold text-primary capitalize">
-                      {rec.category}
-                    </span>
-                  </div>
-
-                  <button
-                    onClick={() => handleToggleLiked(rec.id)}
-                    className="text-xl hover:scale-125 transition"
-                  >
-                    {rec.liked === true ? "❤️" : "👎"}
-                  </button>
+      <div className="grid lg:grid-cols-2 gap-6 items-stretch min-h-150">
+      {/* LEFT - Recommendations */}
+      <div className="flex flex-col h-full">
+        {/* We use flex-col and h-full on the wrapper */}
+        <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-1">
+          {recommendations.map((rec) => (
+            <div
+              key={rec.id}
+              /* 1. flex-1: Makes cards grow to fill space
+                2. flex flex-col: Allows internal content to be positioned
+                3. min-h-[150px]: Ensures they don't get too squashed
+              */
+              className="flex-1 flex flex-col justify-center bg-card border border-border rounded-2xl p-8 hover:border-primary transition-all min-h-[150px]"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{categoryIcon[rec.category]}</span>
+                  <span className="text-sm font-bold tracking-wider text-primary uppercase">
+                    {rec.category}
+                  </span>
                 </div>
-
-                <p className="text-foreground">{rec.content}</p>
+                <button className="text-xl hover:scale-125 transition">
+                  {rec.liked === true ? "❤️" : "👎"}
+                </button>
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* RIGHT - YouTube */}
-        <div className="flex flex-col h-full">
-          <div className="flex-1 space-y-4 overflow-y-auto pr-1">
-            {youtubeMedia.map((media) => (
-              <div key={media.id}>
-                <p className="text-sm text-muted-foreground mb-2">
-                  {media.type === "music" ? "🎵" : "🎬"} {media.title}
-                </p>
-
-                <iframe
-                  className="w-full rounded-lg"
-                  height="220"
-                  src={`https://www.youtube.com/embed/${media.youtubeId}`}
-                  allowFullScreen
-                />
-              </div>
-            ))}
-          </div>
+              {/* leading-relaxed adds more space between lines of text */}
+              <p className="text-lg text-foreground leading-relaxed">
+                {rec.content}
+              </p>
+            </div>
+          ))}
         </div>
+      </div>
+
+      {/* RIGHT - YouTube */}
+      <div className="flex flex-col h-full">
+        {/* We add flex flex-col to the wrapper to allow children to grow */}
+        <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-1">
+          {youtubeMedia.map((media) => (
+            <div key={media.id} className="flex-1 flex flex-col">
+              <p className="text-sm text-muted-foreground mb-2">
+                {media.type === "music" ? "🎵" : "🎬"} {media.title}
+              </p>
+
+              {/* 1. flex-1: Tells the iframe container to fill vertical space
+                2. min-h-[220px]: Prevents it from getting too small
+                3. Removed height="220" 
+              */}
+              <iframe
+                className="w-full flex-1 rounded-xl border border-border min-h-[220px]"
+                src={`https://www.youtube.com/embed/${media.youtubeId}`}
+                allowFullScreen
+              />
+            </div>
+          ))}
+        </div>
+      </div>
       </div>
       </div>
   );

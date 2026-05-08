@@ -132,10 +132,10 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto mt-8 px-4">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+    <div className="max-w-4xl mx-auto mt-4 px-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div className="max-w-125">
-          <h1 className="text-3xl font-bold text-foreground break-words leading-tight">
+          <h1 className="text-2xl font-bold text-foreground break-words leading-tight">
             Hey, {userName ?? "there"} 👋
           </h1>
           <p className="text-muted-foreground">
@@ -153,21 +153,21 @@ export default function DashboardPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div className="rounded-2xl bg-card border border-border p-6 hover:border-primary transition-all duration-300">
+        <div className="rounded-2xl bg-card border border-border p-4 hover:border-primary transition-all duration-300">
           <p className="text-muted-foreground text-sm mb-1">Total Entries</p>
           <p className="text-4xl font-bold text-foreground">
             {stats?.totalEntries ?? "—"}
           </p>
         </div>
 
-        <div className="rounded-2xl bg-card border border-border p-6 hover:border-primary transition-all duration-300">
+        <div className="rounded-2xl bg-card border border-border p-4 hover:border-primary transition-all duration-300">
           <p className="text-muted-foreground text-sm mb-1">This Week</p>
           <p className="text-4xl font-bold text-foreground">
             {stats?.weekEntries ?? "—"}
           </p>
         </div>
 
-        <div className="rounded-2xl bg-card border border-border p-6 hover:border-primary transition-all duration-300">
+        <div className="rounded-2xl bg-card border border-border p-4 hover:border-primary transition-all duration-300">
           <p className="text-muted-foreground text-sm mb-1">Top Mood</p>
           {stats?.topMood ? (
             <div className="flex items-center gap-2">
@@ -183,8 +183,8 @@ export default function DashboardPage() {
       </div>
 
       {/* Mood Chart */}
-      <div className="rounded-2xl bg-card border border-border p-6">
-        <h2 className="text-lg font-bold text-foreground mb-6 text-center sm:text-left">
+      <div className="rounded-2xl bg-card border border-border p-4">
+        <h2 className="text-lg font-bold text-foreground mb-3 text-center sm:text-left">
           7-Day Mood Trend
         </h2>
 
