@@ -29,11 +29,13 @@ export async function getJournalEntries(
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * limit,
         take: limit,
-        include: { recommendations: true },
+        include: {
+          recommendations: true,
+          youtubeMedia: true,  // ← add this
+        },
       }),
       db.journalEntry.count({ where }),
     ]);
-
     res.status(200).json({
       success: true,
       entries,
@@ -61,7 +63,10 @@ export async function getJournalEntry(
 
     const entry = await db.journalEntry.findUnique({
       where: { id: id as string },
-      include: { recommendations: true },
+      include: {
+        recommendations: true,
+        youtubeMedia: true,  // ← add this
+      },
     });
 
     if (!entry) {
@@ -108,10 +113,12 @@ export async function updateNote(
       return;
     }
 
-    const entry = await db.journalEntry.update({
+    const entry = await db.journalEntry.findUnique({
       where: { id: id as string },
-      data: { userNote: parsed.data.userNote },
-      include: { recommendations: true },
+      include: {
+        recommendations: true,
+        youtubeMedia: true,  // ← add this
+      },
     });
 
     res.status(200).json({ success: true, entry });

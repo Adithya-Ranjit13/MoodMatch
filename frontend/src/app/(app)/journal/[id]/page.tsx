@@ -15,6 +15,13 @@ interface Recommendation {
   liked: boolean | null;
 }
 
+interface YoutubeMedia {
+  id: string;
+  type: string;
+  title: string;
+  youtubeId: string;
+}
+
 interface JournalEntry {
   id: string;
   mood: Mood;
@@ -22,6 +29,7 @@ interface JournalEntry {
   userNote: string | null;
   createdAt: string;
   recommendations: Recommendation[];
+  youtubeMedia: YoutubeMedia[];
 }
 
 const moodEmoji: Record<Mood, string> = {
@@ -48,6 +56,7 @@ export default function JournalEntryPage() {
   const [editingNote, setEditingNote] = useState(false);
   const [savingNote, setSavingNote] = useState(false);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [youtubeMedia, setYoutubeMedia] = useState<YoutubeMedia[]>([]);
 
   useEffect(() => {
     fetchEntry();
@@ -64,11 +73,12 @@ export default function JournalEntryPage() {
       );
 
       const data = await res.json();
-      if (res.ok) {
-        setEntry(data.entry);
-        setNote(data.entry.userNote ?? "");
-        setRecommendations(data.entry.recommendations);
-      }
+        if (res.ok) {
+          setEntry(data.entry);
+          setNote(data.entry.userNote ?? "");
+          setRecommendations(data.entry.recommendations);
+          setYoutubeMedia(data.entry.youtubeMedia ?? []);
+        }
     } catch (err) {
       console.error(err);
     }
@@ -168,7 +178,7 @@ export default function JournalEntryPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto mt-8">
+    <div className="w-full lg:w-[80%] max-w-6xl mx-auto mt-8 px-4">
       {/* Back Button */}
       <Button variant="ghost" asChild className="mb-6">
         <Link href="/journal">← Back to Journal</Link>
@@ -253,34 +263,57 @@ export default function JournalEntryPage() {
       </div>
 
       {/* Recommendations */}
-      <h2 className="text-xl font-bold text-foreground mb-4">
-        Your Recommendations
-      </h2>
-
-      <div className="space-y-4">
-        {recommendations.map((rec) => (
-          <div
-            key={rec.id}
-            className="bg-card border border-border rounded-2xl p-5 transition-all duration-300 hover:border-primary"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">{categoryIcon[rec.category]}</span>
-                <span className="text-sm font-semibold text-primary capitalize">
-                  {rec.category}
-                </span>
-              </div>
-              <button
-                onClick={() => handleToggleLiked(rec.id)}
-                className="text-xl transition-all duration-300 hover:scale-125"
+      <div className="grid lg:grid-cols-2 gap-6 items-stretch min-h-[600px]">
+        {/* LEFT - Recommendations */}
+        <div className="flex flex-col h-full">
+          <div className="flex-1 space-y-4 overflow-y-auto pr-1">
+            {recommendations.map((rec) => (
+              <div
+                key={rec.id}
+                className="bg-card border border-border rounded-2xl p-5 hover:border-primary transition-all"
               >
-                {rec.liked === true ? "❤️" : "👎"}
-              </button>
-            </div>
-            <p className="text-foreground">{rec.content}</p>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{categoryIcon[rec.category]}</span>
+                    <span className="text-sm font-semibold text-primary capitalize">
+                      {rec.category}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => handleToggleLiked(rec.id)}
+                    className="text-xl hover:scale-125 transition"
+                  >
+                    {rec.liked === true ? "❤️" : "👎"}
+                  </button>
+                </div>
+
+                <p className="text-foreground">{rec.content}</p>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+
+        {/* RIGHT - YouTube */}
+        <div className="flex flex-col h-full">
+          <div className="flex-1 space-y-4 overflow-y-auto pr-1">
+            {youtubeMedia.map((media) => (
+              <div key={media.id}>
+                <p className="text-sm text-muted-foreground mb-2">
+                  {media.type === "music" ? "🎵" : "🎬"} {media.title}
+                </p>
+
+                <iframe
+                  className="w-full rounded-lg"
+                  height="220"
+                  src={`https://www.youtube.com/embed/${media.youtubeId}`}
+                  allowFullScreen
+                />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-    </div>
+      </div>
   );
 }

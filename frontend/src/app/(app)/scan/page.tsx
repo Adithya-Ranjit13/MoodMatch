@@ -125,7 +125,7 @@ export default function ScanPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto mt-8">
+    <div className="w-full lg:w-[80%] max-w-6xl mx-auto mt-8 px-4">
       <h1 className="text-3xl font-bold text-foreground mb-2">
         How are you feeling?
       </h1>

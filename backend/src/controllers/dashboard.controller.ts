@@ -60,8 +60,9 @@ export async function getDashboardStats(
 
     // Group by day
     const moodToNumber: Record<string, number> = {
-      happy: 5,
-      energetic: 4,
+      
+      energetic: 5,
+      happy: 4,
       calm: 3,
       tired: 2,
       sad: 1,
