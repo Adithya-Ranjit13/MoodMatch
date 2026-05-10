@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { getToken } from "@/lib/token";
 import { Button } from "@/components/ui/button";
+import api from "@/lib/axios";
 
 type Mood = "happy" | "sad" | "stressed" | "calm" | "energetic" | "tired";
 
@@ -64,21 +64,12 @@ export default function JournalEntryPage() {
 
   async function fetchEntry() {
     try {
-      const token = getToken();
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/journal/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await api.get(`/api/journal/${id}`);
+      setEntry(res.data.entry);
+      setNote(res.data.entry.userNote ?? "");
+      setRecommendations(res.data.entry.recommendations);
+      setYoutubeMedia(res.data.entry.youtubeMedia ?? []);
 
-      const data = await res.json();
-        if (res.ok) {
-          setEntry(data.entry);
-          setNote(data.entry.userNote ?? "");
-          setRecommendations(data.entry.recommendations);
-          setYoutubeMedia(data.entry.youtubeMedia ?? []);
-        }
     } catch (err) {
       console.error(err);
     }
@@ -88,20 +79,8 @@ export default function JournalEntryPage() {
   async function handleSaveNote() {
     setSavingNote(true);
     try {
-      const token = getToken();
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/journal/${id}/note`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ userNote: note }),
-        }
-      );
-
-      if (res.ok) setEditingNote(false);
+      await api.patch(`/api/journal/${id}/note`, { userNote: note }); // ← add body
+      setEditingNote(false);
     } catch (err) {
       console.error(err);
     }
@@ -110,38 +89,25 @@ export default function JournalEntryPage() {
 
   async function handleToggleLiked(recId: string) {
     try {
-      const token = getToken();
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/journal/recommendation/${recId}/liked`,
-        {
-          method: "PATCH",
-          headers: { Authorization: `Bearer ${token}` },
-        }
+      const current = recommendations.find(r => r.id === recId);
+      const newLiked = current?.liked === true ? null : true;
+      
+      const res = await api.patch(
+        `/api/journal/recommendation/${recId}/liked`,
+        { liked: newLiked }
       );
-
-      const data = await res.json();
-      if (res.ok) {
-        setRecommendations(recommendations.map((r) =>
-          r.id === recId ? { ...r, liked: data.recommendation.liked } : r
-        ));
-      }
+      setRecommendations(recommendations.map((r) =>
+        r.id === recId ? { ...r, liked: res.data.recommendation.liked } : r
+      ));
     } catch (err) {
       console.error(err);
     }
-  }
+}
 
   async function handleDelete() {
     try {
-      const token = getToken();
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/journal/${id}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (res.ok) router.push("/journal");
+      await api.delete(`/api/journal/${id}`);
+      router.push("/journal");
     } catch (err) {
       console.error(err);
     }
@@ -284,9 +250,14 @@ export default function JournalEntryPage() {
                     {rec.category}
                   </span>
                 </div>
-                <button className="text-xl hover:scale-125 transition">
-                  {rec.liked === true ? "❤️" : "👎"}
-                </button>
+                  <button
+                    onClick={() => handleToggleLiked(rec.id)}
+                    className={`text-xl hover:scale-125 transition-all duration-300 ${
+                      rec.liked === null || rec.liked === undefined ? "opacity-40" : "opacity-100"
+                    }`}
+                  >
+                    {rec.liked === false ? "👎" : "❤️"}
+                  </button>
               </div>
 
               {/* leading-relaxed adds more space between lines of text */}

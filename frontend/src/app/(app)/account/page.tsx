@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getToken, removeToken } from "@/lib/token";
+import { removeToken } from "@/lib/token";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import api from "@/lib/axios";
 import {
   Dialog,
   DialogContent,
@@ -47,16 +48,8 @@ export default function AccountPage() {
 
   async function fetchAccount() {
     try {
-      const token = getToken();
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/account`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      const data = await res.json();
-      if (res.ok) setUser(data.user);
+      const res = await api.get("/api/account");
+      setUser(res.data.user)
     } catch (err) {
       console.error(err);
     }
@@ -72,59 +65,38 @@ export default function AccountPage() {
       return;
     }
 
+    if (newPassword.length < 6) {
+      setPasswordError("Password must be at least 6 characters");
+      return;
+    }
+
     setPasswordLoading(true);
     try {
-      const token = getToken();
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/account/password`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ currentPassword, newPassword }),
-        }
-      );
-
-      const data = await res.json();
-      if (res.ok) {
-        setPasswordSuccess("Password changed successfully!");
-        setCurrentPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
-      } else {
-        setPasswordError(data.error);
-      }
-    } catch {
-      setPasswordError("Something went wrong");
+      await api.patch("/api/account/password", { currentPassword, newPassword });
+      setPasswordSuccess("Password changed successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      setPasswordError(error.response?.data?.error || "Something went wrong");
+    } finally {
+      setPasswordLoading(false);
     }
-    setPasswordLoading(false);
   }
 
   async function handleExport() {
     setExportLoading(true);
     try {
-      const token = getToken();
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/account/export`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      const data = await res.json();
-      if (res.ok) {
-        const blob = new Blob([JSON.stringify(data, null, 2)], {
-          type: "application/json",
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `moodmatch-journal-${new Date().toISOString().split("T")[0]}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
+      const res = await api.get("/api/account/export");
+      const blob = new Blob([JSON.stringify(res.data, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `moodmatch-journal-${new Date().toISOString().split("T")[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (err) {
       console.error(err);
     }
@@ -136,28 +108,11 @@ export default function AccountPage() {
     setDeleteLoading(true);
 
     try {
-      const token = getToken();
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/account`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ password: deletePassword }),
-        }
-      );
-
-      const data = await res.json();
-      if (res.ok) {
-        removeToken();
-        await signOut({ callbackUrl: "/login" });
-      } else {
-        setDeleteError(data.error);
-      }
-    } catch {
-      setDeleteError("Something went wrong");
+      await api.delete("/api/account", { data: { password: deletePassword } });
+      removeToken();
+      await signOut({ callbackUrl: "/login" });
+    } catch (error: any) {
+      setDeleteError(error.response?.data?.error || "Something went wrong");
     }
     setDeleteLoading(false);
   }

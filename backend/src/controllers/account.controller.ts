@@ -71,7 +71,7 @@ export async function changePassword(
       user.hashedPassword
     );
     if (!passwordMatch) {
-      res.status(401).json({ error: "Current password is incorrect" });
+      res.status(400).json({ error: "Current password is incorrect" });
       return;
     }
 
@@ -142,7 +142,7 @@ export async function deleteAccount(
 
     const passwordMatch = await bcrypt.compare(password, user.hashedPassword);
     if (!passwordMatch) {
-      res.status(401).json({ error: "Incorrect password" });
+      res.status(400).json({ error: "Incorrect password" });
       return;
     }
 

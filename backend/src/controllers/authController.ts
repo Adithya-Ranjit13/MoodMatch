@@ -6,6 +6,9 @@ import {
   generateJWT,
   generateVerificationToken,
   verifyEmailToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+  deleteRefreshToken,
 } from "../lib/token";
 import { sendVerificationEmail } from "../lib/email";
 
@@ -88,15 +91,17 @@ export async function login(req: Request, res: Response): Promise<void> {
 
     const passwordMatch = await bcrypt.compare(password, user.hashedPassword!);
     if (!passwordMatch) {
-      res.status(401).json({ error: "Invalid email or password" });
+      res.status(400).json({ error: "Invalid email or password" });
       return;
     }
 
-    const token = generateJWT(user.id);
+    const accessToken = generateJWT(user.id);
+    const refreshToken = await generateRefreshToken(user.id);
 
     res.status(200).json({
       success: true,
-      token,
+      token: accessToken,
+      refreshToken,
       user: {
         id: user.id,
         name: user.name,
@@ -105,7 +110,7 @@ export async function login(req: Request, res: Response): Promise<void> {
     });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ error: "Something went wrong. Please try again." });
+    res.status(500).json({ error: "Something went wrong." });
   }
 }
 
@@ -132,8 +137,48 @@ export async function verifyEmail(req: Request, res: Response): Promise<void> {
     res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 }
+// ─── REFRESH TOKEN ────────────────────────────────────────
+export async function refreshToken(req: Request, res: Response): Promise<void> {
+  try {
+    const { refreshToken } = req.body;
 
+    if (!refreshToken) {
+      res.status(400).json({ error: "Refresh token required" });
+      return;
+    }
+
+    const stored = await verifyRefreshToken(refreshToken);
+    if (!stored) {
+      res.status(401).json({ error: "Invalid or expired refresh token" });
+      return;
+    }
+
+    // Delete old refresh token
+    await deleteRefreshToken(refreshToken);
+
+    // Generate new tokens
+    const newAccessToken = generateJWT(stored.userId);
+    const newRefreshToken = await generateRefreshToken(stored.userId);
+
+    res.status(200).json({
+      success: true,
+      token: newAccessToken,
+      refreshToken: newRefreshToken,
+    });
+  } catch (error) {
+    console.error("Refresh token error:", error);
+    res.status(500).json({ error: "Something went wrong." });
+  }
+}
 // ─── LOGOUT ───────────────────────────────────────────────
 export async function logout(req: Request, res: Response): Promise<void> {
-  res.status(200).json({ success: true, message: "Logged out successfully" });
+  try {
+    const { refreshToken } = req.body;
+    if (refreshToken) {
+      await deleteRefreshToken(refreshToken);
+    }
+    res.status(200).json({ success: true, message: "Logged out successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Something went wrong." });
+  }
 }

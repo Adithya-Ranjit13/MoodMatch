@@ -3,7 +3,7 @@
 import { useState } from "react";
 import WebcamScanner from "@/components/webcam-scanner";
 import MoodPicker from "@/components/mood-picker";
-import { getToken } from "@/lib/token";
+import api from "@/lib/axios";
 import Link from "next/link";
 
 type Mood = "happy" | "sad" | "stressed" | "calm" | "energetic" | "tired";
@@ -71,63 +71,34 @@ export default function ScanPage() {
     setLoading(true);
 
     try {
-      const token = getToken();
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mood`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          mood: selectedMood,
-          source: mode,
-          note,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setRecommendations(data.entry.recommendations);
-  setYoutubeMedia(data.entry.youtubeMedia ?? []);
-        setStep("results");
-      } else {
-        console.error(data.error);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-
+      const res = await api.post(`/api/mood`, {
+        mood: selectedMood,
+        source: mode,
+        note,
+        });
+      setRecommendations(res.data.entry.recommendations);
+      setYoutubeMedia(res.data.entry.youtubeMedia ?? []);
+      setStep("results");
+      } catch (err) {
+        console.error("handleConfirm failed:", err);
+        setLoading(false);
+}
     setLoading(false);
   }
 
   async function handleToggleLiked(recId: string, value: boolean) {
     try {
-      const token = getToken();
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/journal/recommendation/${recId}/liked`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            liked: liked[recId] === value ? null : value,
-          }),
-        }
+      const res = await api.patch(`/api/journal/recommendation/${recId}/liked`,
+        {liked: liked[recId] === value ? null : value}
       );
-
-      const data = await res.json();
-      if (res.ok) {
-        setLiked((prev) => ({
-          ...prev,
-          [recId]: data.recommendation.liked,
+      setLiked((prev) => ({
+        ...prev,
+        [recId]: res.data.recommendation.liked,
         }));
-      }
     } catch (err) {
-      console.error(err);
+      console.error("API error",err);
+      setLoading(false);
     }
   }
 

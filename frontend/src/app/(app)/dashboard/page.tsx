@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { getToken } from "@/lib/token";
 import Link from "next/link";
+import api from "@/lib/axios";
 import {
   ResponsiveContainer,
   LineChart,
@@ -100,21 +100,11 @@ export default function DashboardPage() {
   }, []);
   async function fetchStats() {
     try {
-      const token = getToken();
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/stats`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      const data = await res.json();
-      console.log("Data",data);
-      if (res.ok) {
-        setStats(data.stats);
-        setChart(data.chart);
-        setUserName(data.user?.name ?? null);
-      }
+      const res = await api.get(`/api/dashboard/stats`);
+      console.log("Data",res.data);
+      setStats(res.data.stats);
+      setChart(res.data.chart);
+      setUserName(res.data.user?.name ?? null);
     } catch (err) {
       console.error(err);
     }
@@ -252,7 +242,7 @@ export default function DashboardPage() {
                   strokeWidth={2}
                   dot={{ fill: "var(--primary)", strokeWidth: 2, r: 5 }}
                   activeDot={{ r: 7, fill: "var(--primary)" }}
-                  connectNulls={false}
+                  connectNulls={true}
                 />
               </LineChart>
             </ResponsiveContainer>

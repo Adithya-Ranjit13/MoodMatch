@@ -31,7 +31,7 @@ export async function saveMood(req: AuthRequest, res: Response): Promise<void> {
     const recentEntries = await db.journalEntry.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
-      take: 3,
+      take: 10,
       include: { recommendations: true },
     });
 
@@ -57,28 +57,63 @@ export async function saveMood(req: AuthRequest, res: Response): Promise<void> {
         },
         {
           role: "user",
-          content: `The user is feeling ${mood} right now.
-User's note: ${note || "No additional note provided."}
+          content: `The user is currently feeling "${mood}".
 
-Recent mood history and past suggestions:
+User note:
+${note || "No additional note provided."}
+
+Recent mood history and previous recommendations:
 ${context}
 
-IMPORTANT:
-- Do NOT repeat or closely resemble past suggestions
-- Provide fresh, new ideas
-- All suggestions must be somewhat relevant with the note provided by the user if one is provided
+Your task:
+Generate emotionally supportive and highly specific recommendations.
 
-Return JSON:
+IMPORTANT RULES:
+- NEVER repeat previous recommendations
+- Recommendations should match the user's emotional state
+- If the user provided a note, personalize suggestions around it
+- Music suggestions MUST be real songs that exist on YouTube/Spotify
+- Include artist names for all music
+- Video suggestions MUST be highly searchable on YouTube
+- Avoid vague searches like:
+  - "motivation"
+  - "relaxing video"
+  - "happy content"
+
+INSTEAD generate searchable phrases like:
+- "10 minute guided meditation for anxiety"
+- "TED talk about overcoming burnout"
+- "deep focus lofi playlist"
+- "calming piano music for stress relief"
+- "morning motivation speech"
+- "breathing exercise for panic attacks"
+
+The goal is to maximize YouTube search accuracy.
+
+Return ONLY valid JSON in this exact format:
+
 {
   "recommendations": [
-    { "category": "music", "content": "Song title by Artist name" },
-    { "category": "activity", "content": "..." },
-    { "category": "reflection", "content": "..." }
+    {
+      "category": "music",
+      "content": "Blinding Lights by The Weeknd"
+    },
+    {
+      "category": "activity",
+      "content": "Take a 15 minute walk outside without your phone"
+    },
+    {
+      "category": "reflection",
+      "content": "Write down 3 things currently causing stress"
+    }
   ],
-  "videoSearch": "specific helpful activity, meditation or motivational video to search on YouTube"
+  "musicSearch": "exact searchable music query",
+  "videoSearch": "exact searchable YouTube video query"
 }
 
-Only respond with JSON.`,
+DO NOT include markdown.
+DO NOT include explanations.
+ONLY return JSON.`,
         },
       ],
     });

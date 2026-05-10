@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { getToken } from "@/lib/token";
+import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -66,25 +66,15 @@ export default function JournalPage() {
   async function fetchEntries() {
     setLoading(true);
     try {
-      const token = getToken();
       const params = new URLSearchParams({
         page: String(page),
         limit: "10",
         ...(moodFilter && { mood: moodFilter }),
       });
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/journal?${params}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      const data = await res.json();
-      if (res.ok) {
-        setEntries(data.entries);
-        setTotalPages(data.pagination.totalPages);
-      }
+      const res = await api.get(`/api/journal?${params}`);
+      setEntries(res.data.entries);
+      setTotalPages(res.data.pagination.totalPages);
     } catch (err) {
       console.error(err);
     }
@@ -93,19 +83,9 @@ export default function JournalPage() {
 
   async function handleDelete(id: string) {
     try {
-      const token = getToken();
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/journal/${id}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (res.ok) {
-        setEntries(entries.filter((e) => e.id !== id));
-        setDeleteId(null);
-      }
+      await api.delete(`/api/journal/${id}`);
+      setEntries(entries.filter((e) => e.id !== id));
+      setDeleteId(null);
     } catch (err) {
       console.error(err);
     }
