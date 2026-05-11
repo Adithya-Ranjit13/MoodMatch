@@ -113,8 +113,9 @@ export async function updateNote(
       return;
     }
 
-    const entry = await db.journalEntry.findUnique({
+    const entry = await db.journalEntry.update({
       where: { id: id as string },
+      data: { userNote: parsed.data.userNote },
       include: {
         recommendations: true,
         youtubeMedia: true,  // ← add this

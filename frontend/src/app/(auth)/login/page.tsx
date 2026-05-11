@@ -35,8 +35,11 @@ export default function LoginPage() {
           return;
         }
 
-        // Save JWT token
+        // Save tokens for API auth (Axios uses these)
         localStorage.setItem("moodmatch_token", data.token);
+        if (data.refreshToken) {
+          localStorage.setItem("moodmatch_refresh_token", data.refreshToken);
+        }
 
         // Also sign in with Auth.js for session
         const result = await login(formData);

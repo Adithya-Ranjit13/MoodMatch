@@ -8,4 +8,5 @@ router.post("/signup", signup);
 router.post("/login", login);
 router.get("/verify", verifyEmail);
 router.post("/refresh", refreshToken);
+router.post("/logout", logout);
 export default router;

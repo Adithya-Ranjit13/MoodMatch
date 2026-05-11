@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getToken, saveToken, getRefreshToken, saveRefreshToken, removeToken, removeRefreshToken } from "./token";
+import { signOut } from "next-auth/react";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -25,7 +26,13 @@ api.interceptors.response.use(
       if (!refreshToken) {
         removeToken();
         removeRefreshToken();
-        window.location.href = "/login";
+        // Clear NextAuth session *with redirect* so middleware doesn't bounce /login -> /dashboard.
+        // Avoid manual window.location pushes here; they can race with cookie clearing.
+        try {
+          await signOut({ callbackUrl: "/login" });
+        } catch {
+          window.location.href = "/login";
+        }
         return Promise.reject(error);
       }
 
@@ -48,7 +55,11 @@ api.interceptors.response.use(
       } catch {
         removeToken();
         removeRefreshToken();
-        window.location.href = "/login";
+        try {
+          await signOut({ callbackUrl: "/login" });
+        } catch {
+          window.location.href = "/login";
+        }
       }
     }
 

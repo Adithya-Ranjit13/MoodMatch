@@ -1,2 +1,6 @@
 node_modules/
 .env
+
+# Next.js build output (should never be committed)
+.next/
+**/.next/

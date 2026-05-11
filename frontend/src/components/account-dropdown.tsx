@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
+import { removeRefreshToken, removeToken } from "@/lib/token";
 
 interface AccountDropdownProps {
   name: string | null | undefined;
@@ -26,6 +27,13 @@ export default function AccountDropdown({ name, email }: AccountDropdownProps) {
   const initials = name
     ? name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
     : "?";
+
+  async function handleLogout() {
+    // Clear backend API tokens (localStorage) as well as NextAuth session.
+    removeToken();
+    removeRefreshToken();
+    await signOut({ callbackUrl: "/login" });
+  }
 
   return (
     <div className="relative" ref={ref}>
@@ -65,7 +73,7 @@ export default function AccountDropdown({ name, email }: AccountDropdownProps) {
               👤 View Account Details
             </Link>
             <button
-              onClick={() => signOut({ callbackUrl: "/login" })}
+              onClick={handleLogout}
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-destructive hover:text-white hover:bg-destructive transition-all duration-300 w-full text-left"
             >
               🚪 Log Out
