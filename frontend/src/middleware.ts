@@ -13,17 +13,15 @@ export default auth((req) => {
     isAuthPage ||
     pathname.startsWith("/verify-email");
 
-  // Not logged in + trying to visit protected page → go to login
   if (!isLoggedIn && !isPublicPage) {
     return Response.redirect(new URL("/login", req.nextUrl));
   }
 
-  // Logged in + trying to visit login or signup only → go to dashboard
   if (isLoggedIn && isAuthPage) {
     return Response.redirect(new URL("/dashboard", req.nextUrl));
   }
 });
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.svg$|.*\\.ico$|.*\\.jpg$|.*\\.jpeg$|.*\\.webp$).*)"],
 };

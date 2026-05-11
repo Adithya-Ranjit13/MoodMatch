@@ -174,6 +174,7 @@ export default function WebcamScanner({ onMoodDetected }: WebcamScannerProps) {
       }
 
       // Average all expression scores
+      // Average all expression scores
       const averaged: Record<string, number> = {};
       const keys = Object.keys(results[0]);
 
@@ -182,7 +183,16 @@ export default function WebcamScanner({ onMoodDetected }: WebcamScannerProps) {
           results.reduce((sum, r) => sum + (r[key] ?? 0), 0) / results.length;
       }
 
-      // Get dominant expression
+      // Boost sad sensitivity — if sad score exceeds threshold, pick it directly
+      const SAD_THRESHOLD = 0.01; // lower = more sensitive (default detection needs ~0.3+)
+      if (averaged["sad"] >= SAD_THRESHOLD) {
+        stopCamera();
+        setTimeout(() => onMoodDetected("sad"), 50);
+        setScanning(false);
+        return;
+      }
+
+      // Get dominant expression for everything else
       const dominant = Object.entries(averaged).reduce((a, b) =>
         a[1] > b[1] ? a : b
       )[0];

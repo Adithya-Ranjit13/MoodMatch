@@ -1,29 +1,48 @@
 "use client";
 
+import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Switch } from "@/components/ui/switch";
+import { Moon, Sun } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function ThemeToggle() {
-  const [isDark, setIsDark] = useState(true);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const root = document.documentElement;
-    if (isDark) {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
-  }, [isDark]);
+    setMounted(true);
+  }, []);
+
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return <div className="w-20 h-9" />;
+  }
+
+  const isDark = theme === "dark";
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm">☀️</span>
-      <Switch
-        checked={isDark}
-        onCheckedChange={setIsDark}
-        className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-amber-400"
-      />
-      <span className="text-sm">🌙</span>
-    </div>
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className={`flex items-center gap-1.5 text-sm font-medium border transition-colors duration-200
+        ${
+          isDark
+            ? "bg-zinc-900 text-white border-zinc-700 hover:bg-zinc-800 hover:text-white"
+            : "bg-white text-black border-zinc-300 hover:bg-zinc-100 hover:text-black"
+        }`}
+    >
+      {isDark ? (
+        <>
+          <Sun className="w-3.5 h-3.5" />
+          Light
+        </>
+      ) : (
+        <>
+          <Moon className="w-3.5 h-3.5" />
+          Dark
+        </>
+      )}
+    </Button>
   );
 }

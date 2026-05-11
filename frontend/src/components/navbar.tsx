@@ -17,9 +17,10 @@ export default async function Navbar() {
             alt="MoodMatch"
             width={40}
             height={40}
-            className="object-contain"
+            className="object-contain drop-shadow-[0_1px_0px_var(--foreground)] opacity-70"
+
           />
-          <span className="text-xl font-bold text-foreground transition-all duration-300 group-hover:text-primary">
+          <span className="text-xl font-bold text-primary transition-all duration-300 group-hover:text-primary">
             MoodMatch
           </span>
         </div>
@@ -27,28 +28,28 @@ export default async function Navbar() {
 
       {/* Desktop Links — hidden on mobile */}
       <div className="hidden md:flex items-center gap-2">
-        <Link
-          href="/scan"
-          className="text-sm text-muted-foreground hover:text-white hover:bg-primary px-3 py-1.5 rounded-md transition-all duration-300"
-        >
-          Scan
-        </Link>
-        <Link
-          href="/journal"
-          className="text-sm text-muted-foreground hover:text-white hover:bg-primary px-3 py-1.5 rounded-md transition-all duration-300"
-        >
-          Journal
-        </Link>
+      <Link
+        href="/scan"
+        className="text-sm text-muted-foreground hover:text-primary-foreground hover:bg-primary px-3 py-1.5 rounded-md transition-all duration-300"
+      >
+        Scan
+      </Link>
+      <Link
+        href="/journal"
+        className="text-sm text-muted-foreground hover:text-primary-foreground hover:bg-primary px-3 py-1.5 rounded-md transition-all duration-300"
+      >
+        Journal
+      </Link>
         <AccountDropdown
           name={session?.user?.name}
           email={session?.user?.email}
         />
-        {/* <ThemeToggle /> */}
+        <ThemeToggle />
       </div>
 
       {/* Mobile — hamburger + account + theme */}
       <div className="flex md:hidden items-center gap-2">
-        {/* <ThemeToggle /> */}
+        <ThemeToggle />
         <AccountDropdown
           name={session?.user?.name}
           email={session?.user?.email}

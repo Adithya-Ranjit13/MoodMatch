@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import AuthNavbar from "@/components/authNavbar";
 
 export default function SignupPage() {
   const [error, setError] = useState("");
@@ -57,133 +58,64 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black px-4 py-8">
-      <div className="w-full max-w-md p-6 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl shadow-black">
-        <h1 className="text-3xl font-bold text-white mb-2">
-          Create account
-        </h1>
-        <p className="text-slate-400 mb-8">
-          Start tracking your mood today
-        </p>
+      <>
+      <AuthNavbar />
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
+        <div className="w-full max-w-md p-6 rounded-2xl bg-card border border-border shadow-2xl">
+          <h1 className="text-3xl font-bold text-foreground mb-2">Create account</h1>
+          <p className="text-muted-foreground mb-8">Start tracking your mood today</p>
 
-        {success ? (
-          <div className="text-center py-6">
-            <div className="text-5xl mb-4">📧</div>
-            <p className="text-green-400 font-semibold text-lg mb-2">
-              Check your email!
-            </p>
-            <p className="text-slate-400 text-sm">
-              We sent a verification link to your email. Click it to activate
-              your account.
-            </p>
-          </div>
-        ) : (
-          <form action={handleSubmit} className="space-y-5">
-            {/* Name */}
-            <div>
-              <Label htmlFor="name" className="text-slate-300">
-                Name
-              </Label>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                required
-                className="mt-1 bg-slate-800 border-slate-700 text-white"
-                placeholder="Your name"
-              />
+          {success ? (
+            <div className="text-center py-6">
+              <div className="text-5xl mb-4">📧</div>
+              <p className="text-green-600 dark:text-green-400 font-semibold text-lg mb-2">Check your email!</p>
+              <p className="text-muted-foreground text-sm">
+                We sent a verification link to your email. Click it to activate your account.
+              </p>
             </div>
+          ) : (
+            <form action={handleSubmit} className="space-y-5">
+              <div>
+                <Label htmlFor="name">Name</Label>
+                <Input id="name" name="name" type="text" required className="mt-1" placeholder="Your name" />
+              </div>
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" name="email" type="email" required className="mt-1" placeholder="you@example.com" />
+              </div>
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" name="password" type="password" required value={password}
+                  onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                  className="mt-1" placeholder="Min. 6 characters" />
+              </div>
+              <div>
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input id="confirmPassword" name="confirmPassword" type="password" required value={confirmPassword}
+                  onChange={(e) => { setConfirmPassword(e.target.value); setError(""); }}
+                  className="mt-1" placeholder="Re-enter password" />
+              </div>
 
-            {/* Email */}
-            <div>
-              <Label htmlFor="email" className="text-slate-300">
-                Email
-              </Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className="mt-1 bg-slate-800 border-slate-700 text-white"
-                placeholder="you@example.com"
-              />
-            </div>
-
-            {/* Password */}
-            <div>
-              <Label htmlFor="password" className="text-slate-300">
-                Password
-              </Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setError("");
-                }}
-                className="mt-1 bg-slate-800 border-slate-700 text-white"
-                placeholder="Min. 6 characters"
-              />
-            </div>
-
-            {/* Confirm Password */}
-            <div>
-              <Label htmlFor="confirmPassword" className="text-slate-300">
-                Confirm Password
-              </Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                  setError("");
-                }}
-                className="mt-1 bg-slate-800 border-slate-700 text-white"
-                placeholder="Re-enter password"
-              />
-            </div>
-
-            {/* Live mismatch message */}
-            {password &&
-              confirmPassword &&
-              password !== confirmPassword && (
-                <p className="text-red-400 text-sm">
-                  Passwords do not match
-                </p>
+              {password && confirmPassword && password !== confirmPassword && (
+                <p className="text-destructive text-sm">Passwords do not match</p>
               )}
+              {error && <p className="text-destructive text-sm">{error}</p>}
 
-            {/* API error */}
-            {error && <p className="text-red-400 text-sm">{error}</p>}
+              <Button type="submit" className="w-full"
+                disabled={loading || !password || !confirmPassword || password !== confirmPassword}>
+                {loading ? "Creating account..." : "Sign up"}
+              </Button>
+            </form>
+          )}
 
-            {/* Submit */}
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={
-                loading ||
-                !password ||
-                !confirmPassword ||
-                password !== confirmPassword
-              }
-            >
-              {loading ? "Creating account..." : "Sign up"}
-            </Button>
-          </form>
-        )}
-
-        <p className="mt-6 text-center text-slate-400 text-sm">
-          Already have an account?{" "}
-          <Link href="/login" className="text-blue-400 hover:underline">
-            Log in
-          </Link>
-        </p>
+          <p className="mt-6 text-center text-muted-foreground text-sm">
+            Already have an account?{" "}
+            <Link href="/login" className="text-primary hover:underline">
+              Log in
+            </Link>
+          </p>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

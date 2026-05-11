@@ -143,24 +143,24 @@ export default function DashboardPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div className="rounded-2xl bg-card border border-border p-4 hover:border-primary transition-all duration-300">
+        <div className="rounded-2xl bg-card border border-border p-4 hover:border-primary transition-all duration-300 text-center sm:text-left">
           <p className="text-muted-foreground text-sm mb-1">Total Entries</p>
           <p className="text-4xl font-bold text-foreground">
             {stats?.totalEntries ?? "—"}
           </p>
         </div>
 
-        <div className="rounded-2xl bg-card border border-border p-4 hover:border-primary transition-all duration-300">
+        <div className="rounded-2xl bg-card border border-border p-4 hover:border-primary transition-all duration-300 text-center sm:text-left">
           <p className="text-muted-foreground text-sm mb-1">This Week</p>
           <p className="text-4xl font-bold text-foreground">
             {stats?.weekEntries ?? "—"}
           </p>
         </div>
 
-        <div className="rounded-2xl bg-card border border-border p-4 hover:border-primary transition-all duration-300">
+        <div className="rounded-2xl bg-card border border-border p-4 hover:border-primary transition-all duration-300 text-center sm:text-left">
           <p className="text-muted-foreground text-sm mb-1">Top Mood</p>
           {stats?.topMood ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 justify-center sm:justify-start">
               <span className="text-3xl">{moodEmoji[stats.topMood]}</span>
               <span className="text-xl font-bold text-foreground capitalize">
                 {stats.topMood}

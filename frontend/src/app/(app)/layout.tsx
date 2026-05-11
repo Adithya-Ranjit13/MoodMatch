@@ -11,7 +11,7 @@ export default async function AppLayout({
   if (!session) redirect("/login");
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-background text-white">
       <Navbar />
       <main className="p-6">{children}</main>
     </div>

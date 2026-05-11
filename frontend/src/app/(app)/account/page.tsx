@@ -119,14 +119,14 @@ export default function AccountPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
+      <div className="flex justify-center py-12 text-foreground">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="w-full lg:w-[80%] max-w-6xl mx-auto mt-8 px-4">
+    <div className="w-full lg:w-[80%] max-w-6xl mx-auto mt-8 px-4 text-foreground">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Account Info</h1>
         <p className="text-muted-foreground">Manage your settings</p>
@@ -152,9 +152,8 @@ export default function AccountPage() {
             <Input placeholder="New password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
             <Input placeholder="Confirm password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
 
-            {passwordError && <p className="text-red-500 text-sm">{passwordError}</p>}
-            {passwordSuccess && <p className="text-green-500 text-sm">{passwordSuccess}</p>}
-
+              {passwordError && <p className="text-destructive text-sm">{passwordError}</p>}
+              {passwordSuccess && <p className="text-green-600 dark:text-green-400 text-sm">{passwordSuccess}</p>}
             <Button onClick={handleChangePassword} disabled={passwordLoading}>
               {passwordLoading ? "Updating..." : "Update Password"}
             </Button>
@@ -165,14 +164,15 @@ export default function AccountPage() {
         <div className="bg-card border rounded-2xl p-6">
           <h2 className="text-lg font-bold mb-2">Export Data</h2>
           <p className="text-muted-foreground text-sm mb-4">Download your journal data.</p>
-          <Button variant="outline" onClick={handleExport} disabled={exportLoading}>
+          <Button onClick={handleExport} disabled={exportLoading}>
             {exportLoading ? "Exporting..." : "Download JSON"}
           </Button>
+
         </div>
 
         {/* Danger */}
-        <div className="bg-card border border-red-500/30 rounded-2xl p-6">
-          <h2 className="text-lg font-bold text-red-500 mb-2">Account Deletion</h2>
+        <div className="bg-card border border-destructive/30 rounded-2xl p-6">
+          <h2 className="text-lg font-bold text-destructive mb-2">Account Deletion</h2>
           <p className="text-muted-foreground text-sm mb-4">Delete account permanently.</p>
           <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
             Delete Account
@@ -194,7 +194,7 @@ export default function AccountPage() {
             onChange={(e) => setDeletePassword(e.target.value)}
           />
 
-          {deleteError && <p className="text-red-500 text-sm">{deleteError}</p>}
+          {deleteError && <p className="text-destructive text-sm">{deleteError}</p>}
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteOpen(false)}>

@@ -41,12 +41,12 @@ const moodEmoji: Record<Mood, string> = {
 };
 
 const moodColor: Record<Mood, string> = {
-  happy: "bg-yellow-500/20 border-yellow-500/30 text-yellow-400",
-  sad: "bg-blue-500/20 border-blue-500/30 text-blue-400",
-  stressed: "bg-red-500/20 border-red-500/30 text-red-400",
-  calm: "bg-green-500/20 border-green-500/30 text-green-400",
-  energetic: "bg-orange-500/20 border-orange-500/30 text-orange-400",
-  tired: "bg-purple-500/20 border-purple-500/30 text-purple-400",
+  happy: "bg-yellow-500/20 border-yellow-500/30 text-yellow-700 dark:text-yellow-400",
+  sad: "bg-blue-500/20 border-blue-500/30 text-blue-700 dark:text-blue-400",
+  stressed: "bg-red-500/20 border-red-500/30 text-red-700 dark:text-red-400",
+  calm: "bg-green-500/20 border-green-500/30 text-green-700 dark:text-green-400",
+  energetic: "bg-orange-500/20 border-orange-500/30 text-orange-700 dark:text-orange-400",
+  tired: "bg-purple-500/20 border-purple-500/30 text-purple-700 dark:text-purple-400",
 };
 
 const MOODS: Mood[] = ["happy", "sad", "stressed", "calm", "energetic", "tired"];
@@ -175,7 +175,7 @@ export default function JournalPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" asChild>
+                  <Button variant="ghost" size="sm" asChild className="text-foreground hover:text-primary">
                     <Link href={`/journal/${entry.id}`}>View →</Link>
                   </Button>
                   <Button
