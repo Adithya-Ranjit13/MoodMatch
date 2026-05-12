@@ -58,6 +58,11 @@ export default function JournalPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [moodFilter, setMoodFilter] = useState<Mood | "">("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectMode, setSelectMode] = useState(false);
+  const [deleteMultipleOpen, setDeleteMultipleOpen] = useState(false);
+  const [deleteAllOpen, setDeleteAllOpen] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   useEffect(() => {
     fetchEntries();
@@ -71,7 +76,6 @@ export default function JournalPage() {
         limit: "10",
         ...(moodFilter && { mood: moodFilter }),
       });
-
       const res = await api.get(`/api/journal?${params}`);
       setEntries(res.data.entries);
       setTotalPages(res.data.pagination.totalPages);
@@ -91,6 +95,50 @@ export default function JournalPage() {
     }
   }
 
+  async function handleDeleteSelected() {
+    setBulkDeleting(true);
+    try {
+      await Promise.all([...selectedIds].map((id) => api.delete(`/api/journal/${id}`)));
+      setEntries(entries.filter((e) => !selectedIds.has(e.id)));
+      setSelectedIds(new Set());
+      setSelectMode(false);
+      setDeleteMultipleOpen(false);
+    } catch (err) {
+      console.error(err);
+    }
+    setBulkDeleting(false);
+  }
+
+  async function handleDeleteAll() {
+    setBulkDeleting(true);
+    try {
+      await Promise.all(entries.map((e) => api.delete(`/api/journal/${e.id}`)));
+      setEntries([]);
+      setSelectedIds(new Set());
+      setSelectMode(false);
+      setDeleteAllOpen(false);
+    } catch (err) {
+      console.error(err);
+    }
+    setBulkDeleting(false);
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === entries.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(entries.map((e) => e.id)));
+    }
+  }
+
   function formatDate(dateStr: string) {
     return new Date(dateStr).toLocaleDateString("en-US", {
       weekday: "short",
@@ -102,9 +150,9 @@ export default function JournalPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto mt-8">
+    <div className="max-w-3xl mx-auto mt-8 px-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Journal</h1>
           <p className="text-muted-foreground">Your mood history</p>
@@ -112,6 +160,47 @@ export default function JournalPage() {
         <Button asChild>
           <Link href="/scan">+ New Entry</Link>
         </Button>
+      </div>
+
+      {/* Action Bar */}
+      <div className="flex gap-2 flex-wrap mb-4">
+        <Button
+          variant={selectMode ? "default" : "outline"}
+          size="sm"
+          onClick={() => {
+            setSelectMode(!selectMode);
+            setSelectedIds(new Set());
+          }}
+        >
+          {selectMode ? "Cancel" : "Select"}
+        </Button>
+
+        {selectMode && (
+          <>
+            <Button variant="outline" size="sm" onClick={toggleSelectAll}>
+              {selectedIds.size === entries.length ? "Deselect All" : "Select All"}
+            </Button>
+            {selectedIds.size > 0 && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setDeleteMultipleOpen(true)}
+              >
+                Delete Selected ({selectedIds.size})
+              </Button>
+            )}
+          </>
+        )}
+
+        {!selectMode && entries.length > 0 && (
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setDeleteAllOpen(true)}
+          >
+            Delete All
+          </Button>
+        )}
       </div>
 
       {/* Mood Filter */}
@@ -144,28 +233,41 @@ export default function JournalPage() {
         <div className="text-center py-12 bg-card border border-border rounded-2xl">
           <p className="text-4xl mb-3">📓</p>
           <p className="text-foreground font-medium">No entries yet</p>
-          <p className="text-muted-foreground text-sm mb-4">
-            Start by scanning your mood
-          </p>
-          <Button asChild>
-            <Link href="/scan">Scan Mood</Link>
-          </Button>
+          <p className="text-muted-foreground text-sm mb-4">Start by scanning your mood</p>
+          <Button asChild><Link href="/scan">Scan Mood</Link></Button>
         </div>
       ) : (
         <div className="space-y-4">
           {entries.map((entry) => (
             <div
               key={entry.id}
-              className="bg-card border border-border rounded-2xl p-5 hover:border-primary transition-all duration-300"
+              onClick={() => selectMode && toggleSelect(entry.id)}
+              className={`bg-card border rounded-2xl p-5 transition-all duration-300 cursor-pointer
+                ${selectMode ? "hover:border-primary" : "hover:border-primary"}
+                ${selectedIds.has(entry.id)
+                  ? "border-primary bg-primary/5"
+                  : "border-border"
+                }`}
             >
-              {/* Entry Header */}
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
+                  {/* Checkbox in select mode */}
+                  {selectMode && (
+                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all
+                      ${selectedIds.has(entry.id)
+                        ? "bg-primary border-primary"
+                        : "border-border"
+                      }`}
+                    >
+                      {selectedIds.has(entry.id) && (
+                        <span className="text-white text-xs">✓</span>
+                      )}
+                    </div>
+                  )}
+
                   <span className="text-3xl">{moodEmoji[entry.mood]}</span>
                   <div>
-                    <span
-                      className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border ${moodColor[entry.mood]}`}
-                    >
+                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border ${moodColor[entry.mood]}`}>
                       {entry.mood}
                     </span>
                     <p className="text-muted-foreground text-xs mt-1">
@@ -174,35 +276,32 @@ export default function JournalPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" asChild className="text-foreground hover:text-primary">
-                    <Link href={`/journal/${entry.id}`}>View →</Link>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => setDeleteId(entry.id)}
-                  >
-                    Delete
-                  </Button>
-                </div>
+                {!selectMode && (
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm" asChild className="text-foreground hover:text-primary">
+                      <Link href={`/journal/${entry.id}`}>View →</Link>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      onClick={(e) => { e.stopPropagation(); setDeleteId(entry.id); }}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                )}
               </div>
 
-              {/* User Note */}
               {entry.userNote && (
                 <p className="text-muted-foreground text-sm mb-3 italic">
                   "{entry.userNote}"
                 </p>
               )}
 
-              {/* Recommendations Preview */}
               <div className="flex gap-2 flex-wrap">
                 {entry.recommendations.map((rec) => (
-                  <span
-                    key={rec.id}
-                    className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full border border-primary/20"
-                  >
+                  <span key={rec.id} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full border border-primary/20">
                     {rec.category === "music" ? "🎵" : rec.category === "activity" ? "🏃" : "💭"} {rec.category}
                   </span>
                 ))}
@@ -215,44 +314,53 @@ export default function JournalPage() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center items-center gap-2 mt-8">
-          <Button
-            variant="outline"
-            onClick={() => setPage(page - 1)}
-            disabled={page === 1}
-          >
-            ← Prev
-          </Button>
-          <span className="px-4 py-2 text-muted-foreground text-sm">
-            {page} / {totalPages}
-          </span>
-          <Button
-            variant="outline"
-            onClick={() => setPage(page + 1)}
-            disabled={page === totalPages}
-          >
-            Next →
-          </Button>
+          <Button variant="outline" onClick={() => setPage(page - 1)} disabled={page === 1}>← Prev</Button>
+          <span className="px-4 py-2 text-muted-foreground text-sm">{page} / {totalPages}</span>
+          <Button variant="outline" onClick={() => setPage(page + 1)} disabled={page === totalPages}>Next →</Button>
         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
+      {/* Single Delete Dialog */}
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Entry?</DialogTitle>
-            <DialogDescription>
-              This will permanently delete this journal entry and all its recommendations.
-            </DialogDescription>
+            <DialogDescription>This will permanently delete this journal entry and all its recommendations.</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteId(null)}>
-              Cancel
+            <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={() => handleDelete(deleteId!)}>Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Selected Dialog */}
+      <Dialog open={deleteMultipleOpen} onOpenChange={setDeleteMultipleOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete {selectedIds.size} entries?</DialogTitle>
+            <DialogDescription>This will permanently delete the selected journal entries and all their recommendations.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteMultipleOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDeleteSelected} disabled={bulkDeleting}>
+              {bulkDeleting ? "Deleting..." : `Delete ${selectedIds.size} entries`}
             </Button>
-            <Button
-              variant="destructive"
-              onClick={() => handleDelete(deleteId!)}
-            >
-              Delete
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete All Dialog */}
+      <Dialog open={deleteAllOpen} onOpenChange={setDeleteAllOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete All Entries?</DialogTitle>
+            <DialogDescription>This will permanently delete ALL your journal entries and recommendations. This cannot be undone.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteAllOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDeleteAll} disabled={bulkDeleting}>
+              {bulkDeleting ? "Deleting..." : "Delete All"}
             </Button>
           </DialogFooter>
         </DialogContent>
