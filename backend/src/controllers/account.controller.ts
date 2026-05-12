@@ -70,8 +70,21 @@ export async function changePassword(
       currentPassword,
       user.hashedPassword
     );
+
     if (!passwordMatch) {
       res.status(400).json({ error: "Current password is incorrect" });
+      return;
+    }
+
+    const samePassword = await bcrypt.compare(
+      newPassword,
+      user.hashedPassword
+    );
+
+    if (samePassword) {
+      res.status(400).json({
+        error: "New password must be different from current password",
+      });
       return;
     }
 

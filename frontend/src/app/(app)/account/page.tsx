@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import api from "@/lib/axios";
+import { Eye, EyeOff } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -31,10 +32,14 @@ export default function AccountPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
-
+  
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
   const [deleteError, setDeleteError] = useState("");
@@ -148,9 +153,69 @@ export default function AccountPage() {
         <div className="bg-card border rounded-2xl p-6">
           <h2 className="text-lg font-bold mb-4">Change Password</h2>
           <div className="space-y-3">
-            <Input placeholder="Current password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
-            <Input placeholder="New password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-            <Input placeholder="Confirm password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+            <div className="relative">
+              <Input
+                placeholder="Current password"
+                type={showCurrentPassword ? "text" : "password"}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="pr-10"
+              />
+
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                onMouseDown={() => setShowCurrentPassword(true)}
+                onMouseUp={() => setShowCurrentPassword(false)}
+                onMouseLeave={() => setShowCurrentPassword(false)}
+                onTouchStart={() => setShowCurrentPassword(true)}
+                onTouchEnd={() => setShowCurrentPassword(false)}
+              >
+                {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            <div className="relative">
+              <Input
+                placeholder="New password"
+                type={showNewPassword ? "text" : "password"}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="pr-10"
+              />
+
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                onMouseDown={() => setShowNewPassword(true)}
+                onMouseUp={() => setShowNewPassword(false)}
+                onMouseLeave={() => setShowNewPassword(false)}
+                onTouchStart={() => setShowNewPassword(true)}
+                onTouchEnd={() => setShowNewPassword(false)}
+              >
+                {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            <div className="relative">
+              <Input
+                placeholder="Confirm password"
+                type={showConfirmPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="pr-10"
+              />
+
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                onMouseDown={() => setShowConfirmPassword(true)}
+                onMouseUp={() => setShowConfirmPassword(false)}
+                onMouseLeave={() => setShowConfirmPassword(false)}
+                onTouchStart={() => setShowConfirmPassword(true)}
+                onTouchEnd={() => setShowConfirmPassword(false)}
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
 
               {passwordError && <p className="text-destructive text-sm">{passwordError}</p>}
               {passwordSuccess && <p className="text-green-600 dark:text-green-400 text-sm">{passwordSuccess}</p>}
