@@ -48,13 +48,15 @@ export default function ScanPage() {
   const [liked, setLiked] = useState<Record<string, boolean | null>>({});
   const [youtubeMedia, setYoutubeMedia] = useState<YoutubeMedia[]>([]);// Mode toggle buttons — add stopCamera trigger by resetting a key
   const [webcamKey, setWebcamKey] = useState(0);
+  const [confidence, setConfidence] = useState<number | null>(null);
 
 
 
-  function handleMoodDetected(mood: Mood) {
+  function handleMoodDetected(mood: Mood,confidence:number) {
     // immediately leave scan screen
     setDetectedMood(mood);
     setSelectedMood(mood);
+    setConfidence(Math.round(confidence * 100));
 
     // this unmounts WebcamScanner instantly
     // which forces camera cleanup
@@ -76,6 +78,7 @@ export default function ScanPage() {
         mood: selectedMood,
         source: mode,
         note,
+        confidenceScore: confidence !==null ? confidence /100 : undefined,
         });
       setRecommendations(res.data.entry.recommendations);
       setYoutubeMedia(res.data.entry.youtubeMedia ?? []);
@@ -178,6 +181,12 @@ export default function ScanPage() {
               <p className="text-xl font-bold text-primary capitalize">
                 {detectedMood}
               </p>
+              {confidence !== null && (
+                <p className="text-muted-foreground text-xs mt-1">
+                  Confidence: {confidence}%
+                  {confidence < 40 && " · Low confidence — consider overriding"}
+                </p>
+              )}
               <p className="text-muted-foreground text-xs mt-2">
                 💡 Feeling energetic or tired? Override below!
               </p>

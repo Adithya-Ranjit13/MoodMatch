@@ -17,7 +17,7 @@ const expressionToMood: Record<string, Mood> = {
 };
 
 interface WebcamScannerProps {
-  onMoodDetected: (mood: Mood) => void;
+  onMoodDetected: (mood: Mood,confidence: number) => void;
 }
 
 export default function WebcamScanner({ onMoodDetected }: WebcamScannerProps) {
@@ -31,6 +31,7 @@ export default function WebcamScanner({ onMoodDetected }: WebcamScannerProps) {
   const [permission, setPermission] = useState<"pending" | "granted" | "denied">("pending");
   const [faceCount, setFaceCount] = useState(0);
   const [canScan, setCanScan] = useState(false);
+  const CONFIDENCE_THRESHOLD = 0.4; // minimum confidence to accept detection
 
   useEffect(() => {
     loadModels();
@@ -197,31 +198,38 @@ export default function WebcamScanner({ onMoodDetected }: WebcamScannerProps) {
       // Average all expression scores
       const averaged: Record<string, number> = {};
       const keys = Object.keys(results[0]);
+      const maxSad = Math.max(...results.map(r => r["sad"] ?? 0));
+      console.log("MaxSad: ",maxSad);
 
       for (const key of keys) {
         averaged[key] =
           results.reduce((sum, r) => sum + (r[key] ?? 0), 0) / results.length;
       }
-
-      // Boost sad sensitivity — if sad score exceeds threshold, pick it directly
-      const SAD_THRESHOLD = 0.01; // lower = more sensitive (default detection needs ~0.3+)
-      if (averaged["sad"] >= SAD_THRESHOLD) {
+      console.log("Averaged expression scores:", averaged);
+      const SAD_THRESHOLD = 0.01;
+      // PRIORITIZE sadness detection
+      if (maxSad >= SAD_THRESHOLD) {
         stopCamera();
-        setTimeout(() => onMoodDetected("sad"), 50);
+        setTimeout(() => onMoodDetected("sad", maxSad), 50);
         setScanning(false);
         return;
       }
 
-      // Get dominant expression for everything else
+      // Otherwise continue normal detection
       const dominant = Object.entries(averaged).reduce((a, b) =>
         a[1] > b[1] ? a : b
-      )[0];
+      );
 
-      const mood = expressionToMood[dominant] ?? "calm";
+      const dominantExpression = dominant[0];
+      const confidence = dominant[1];
+
+      const mood =
+        confidence >= CONFIDENCE_THRESHOLD
+          ? (expressionToMood[dominantExpression] ?? "calm")
+          : "calm";
+
       stopCamera();
-      setTimeout(() => {
-        onMoodDetected(mood);
-      }, 50);
+      setTimeout(() => onMoodDetected(mood, confidence), 50);
     } catch (err) {
       setError("Scan failed. Please try again.");
     }
