@@ -36,15 +36,14 @@ export async function saveMood(req: AuthRequest, res: Response): Promise<void> {
     });
 
     const context = recentEntries.length > 0
-      ? recentEntries.map((entry) => {
+      ? recentEntries.map((entry: any) => {
           const recs = entry.recommendations
-            .map((r) => `${r.category}: ${r.content}`)
+            .map((r: any) => `${r.category}: ${r.content}`)
             .join(", ");
           return `${entry.createdAt.toDateString()}: felt ${entry.mood}
           Suggestions given: ${recs}`;
         }).join("\n\n")
       : "This is the user's first mood entry.";
-
     // Call Groq AI
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
