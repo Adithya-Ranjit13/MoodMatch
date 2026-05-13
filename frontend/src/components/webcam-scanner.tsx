@@ -149,21 +149,41 @@ export default function WebcamScanner({ onMoodDetected }: WebcamScannerProps) {
       setCountdown(0);
 
       // Take 16 snaps
+      let multiFaceFrames = 0;
+
       for (let i = 0; i < TOTAL_SNAPS; i++) {
-        const detection = await faceapi
-          .detectSingleFace(
+        const detections = await faceapi
+          .detectAllFaces(
             videoRef.current,
             new faceapi.TinyFaceDetectorOptions()
           )
           .withFaceExpressions();
 
-        if (detection) {
+        // Abort if multiple faces appear for more than 2 frames
+        if (detections.length > 1) {
+          multiFaceFrames++;
+
+          if (multiFaceFrames > 2) {
+            setError(
+              "Multiple faces detected during scan. Please ensure only one face is visible."
+            );
+            setScanning(false);
+            return;
+          }
+        } else {
+          // reset counter if frame becomes valid again
+          multiFaceFrames = 0;
+        }
+
+        // Only use scan data if exactly one face exists
+        if (detections.length === 1) {
           results.push(
-            detection.expressions as unknown as Record<string, number>
+            detections[0].expressions as unknown as Record<string, number>
           );
         }
 
         setSnapshotsTaken(i + 1);
+
         await new Promise((r) => setTimeout(r, INTERVAL_MS));
       }
 
