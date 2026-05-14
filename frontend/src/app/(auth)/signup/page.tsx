@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import AuthNavbar from "@/components/authNavbar";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 export default function SignupPage() {
   const [error, setError] = useState("");
@@ -18,11 +18,13 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setLoading(true);
     setError("");
     setSuccess("");
 
+    const formData = new FormData(e.currentTarget);
     const name = formData.get("name");
     const email = formData.get("email");
 
@@ -35,14 +37,8 @@ export default function SignupPage() {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signup`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
       });
 
       const data = await res.json();
@@ -61,7 +57,7 @@ export default function SignupPage() {
   }
 
   return (
-      <>
+    <>
       <AuthNavbar />
       <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
         <div className="w-full max-w-md p-6 rounded-2xl bg-card border border-border shadow-2xl">
@@ -77,7 +73,7 @@ export default function SignupPage() {
               </p>
             </div>
           ) : (
-            <form action={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <Label htmlFor="name">Name</Label>
                 <Input id="name" name="name" type="text" required className="mt-1" placeholder="Your name" />
@@ -88,7 +84,6 @@ export default function SignupPage() {
               </div>
               <div>
                 <Label htmlFor="password">Password</Label>
-
                 <div className="relative">
                   <Input
                     id="password"
@@ -103,7 +98,6 @@ export default function SignupPage() {
                     className="mt-1 pr-10"
                     placeholder="Min. 6 characters"
                   />
-
                   <button
                     type="button"
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
@@ -119,7 +113,6 @@ export default function SignupPage() {
               </div>
               <div>
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
-
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -134,7 +127,6 @@ export default function SignupPage() {
                     className="mt-1 pr-10"
                     placeholder="Re-enter password"
                   />
-
                   <button
                     type="button"
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
@@ -154,9 +146,19 @@ export default function SignupPage() {
               )}
               {error && <p className="text-destructive text-sm">{error}</p>}
 
-              <Button type="submit" className="w-full"
-                disabled={loading || !password || !confirmPassword || password !== confirmPassword}>
-                {loading ? "Creating account..." : "Sign up"}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={loading || !password || !confirmPassword || password !== confirmPassword}
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 size={18} className="animate-spin" />
+                    Creating account...
+                  </span>
+                ) : (
+                  "Sign up"
+                )}
               </Button>
             </form>
           )}
