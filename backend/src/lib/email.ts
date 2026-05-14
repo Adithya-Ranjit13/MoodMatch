@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
   tls: {
     rejectUnauthorized: false,
   },
-  family: 4, // force IPv4 — Render uses IPv6 by default which Gmail blocks
+  family: 4,
 } as any);
 
 export async function sendVerificationEmail(
@@ -49,7 +49,7 @@ export async function sendVerificationEmail(
     });
     console.log("Email sent to:", email);
   } catch (error) {
-    console.error("Email sending failed:", error);
+    console.error("Email sending failed - RAW ERROR:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
     throw new Error("Failed to send verification email");
   }
 }
