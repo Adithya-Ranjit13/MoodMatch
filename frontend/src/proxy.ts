@@ -1,28 +1,13 @@
-import { auth } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export default auth((req) => {
-  const isLoggedIn = !!req.auth;
-  const pathname = req.nextUrl.pathname;
-
-  const isAuthPage =
-    pathname.startsWith("/login") ||
-    pathname.startsWith("/signup");
-
-  const isPublicPage =
-    isAuthPage ||
-    pathname.startsWith("/verify-email");
-
-  if (!isLoggedIn && !isPublicPage) {
-    return Response.redirect(new URL("/login", req.nextUrl));
-  }
-
-  if (isLoggedIn && isAuthPage) {
-    return Response.redirect(new URL("/dashboard", req.nextUrl));
-  }
-});
+export function middleware(req: NextRequest) {
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [
     "/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.svg$|.*\\.ico$|.*\\.jpg$|.*\\.jpeg$|.*\\.webp$).*)",
   ],
 };
+//Trial
