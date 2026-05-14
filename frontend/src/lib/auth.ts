@@ -23,17 +23,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!parsed.success) return null;
 
         try {
-          const response = await fetch(
-            `${BACKEND_URL}/api/auth/login`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: parsed.data.email,
-                password: parsed.data.password,
-              }),
-            }
-          );
+          const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: parsed.data.email,
+              password: parsed.data.password,
+            }),
+          });
 
           const data = await response.json();
           if (!response.ok) return null;
