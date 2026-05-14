@@ -1,6 +1,6 @@
 node_modules/
 .env
-
+package-lock.json
 # Next.js build output (should never be committed)
 .next/
 **/.next/
