@@ -1,6 +1,5 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
-
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
@@ -11,7 +10,11 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
-});
+  tls: {
+    rejectUnauthorized: false,
+  },
+  family: 4, // force IPv4 — Render uses IPv6 by default which Gmail blocks
+} as any);
 
 export async function sendVerificationEmail(
   email: string,
@@ -19,7 +22,6 @@ export async function sendVerificationEmail(
 ): Promise<void> {
   try {
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
-
     await transporter.sendMail({
       from: `"MoodMatch" <${process.env.EMAIL_FROM}>`,
       to: email,
@@ -45,7 +47,6 @@ export async function sendVerificationEmail(
         </div>
       `,
     });
-
     console.log("Email sent to:", email);
   } catch (error) {
     console.error("Email sending failed:", error);
