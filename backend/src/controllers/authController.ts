@@ -26,7 +26,7 @@ const loginSchema = z.object({
 
 // ─── SIGNUP ───────────────────────────────────────────────
 export async function signup(req: Request, res: Response): Promise<void> {
-  console.log("Signup called with:", req.body);  // ← add this
+
   try {
     const parsed = signupSchema.safeParse(req.body);
     if (!parsed.success) {
