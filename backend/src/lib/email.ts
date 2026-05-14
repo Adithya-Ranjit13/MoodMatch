@@ -1,20 +1,8 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import dotenv from "dotenv";
 dotenv.config();
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT),
-  secure: Number(process.env.SMTP_PORT) === 465,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-  family: 4,
-} as any);
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendVerificationEmail(
   email: string,
@@ -22,8 +10,8 @@ export async function sendVerificationEmail(
 ): Promise<void> {
   try {
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
-    await transporter.sendMail({
-      from: `"MoodMatch" <${process.env.EMAIL_FROM}>`,
+    await resend.emails.send({
+      from: "MoodMatch <onboarding@resend.dev>",
       to: email,
       subject: "Verify your MoodMatch email",
       html: `
