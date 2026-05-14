@@ -7,7 +7,11 @@ const loginSchema = z.object({
   password: z.string().min(6),
 });
 
+const BACKEND_URL = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL;
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret: process.env.AUTH_SECRET,
+  trustHost: true,
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
@@ -20,7 +24,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         try {
           const response = await fetch(
-            `${process.env.BACKEND_URL}/api/auth/login`,
+            `${BACKEND_URL}/api/auth/login`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
