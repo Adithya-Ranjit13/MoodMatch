@@ -21,6 +21,20 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.json({ message: "MoodMatch API is running!" });
 });
+app.use(cors({
+  origin: function(origin, callback) {
+    const allowed = [
+      process.env.FRONTEND_URL,
+      /\.vercel\.app$/,
+    ];
+    if (!origin || allowed.some(a => typeof a === 'string' ? a === origin : a.test(origin))) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/mood", moodRoutes);
