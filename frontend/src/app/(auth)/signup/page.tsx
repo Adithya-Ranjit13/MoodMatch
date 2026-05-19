@@ -45,15 +45,32 @@ export default function SignupPage() {
 
       if (!res.ok) {
         setError(data.error || data.message || "Signup failed");
+        setLoading(false);
+        return;
+      }
+
+      // Auto login after signup
+      const loginRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const loginData = await loginRes.json();
+
+      if (loginRes.ok) {
+        localStorage.setItem("moodmatch_token", loginData.token);
+        localStorage.setItem("moodmatch_refresh_token", loginData.refreshToken);
+        window.location.href = "/dashboard";
       } else {
-        setSuccess("Check your email!");
+        setError("Account created but login failed. Please log in manually.");
+        setLoading(false);
       }
     } catch (err) {
       console.error(err);
       setError("Something went wrong");
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   return (

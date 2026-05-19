@@ -23,10 +23,8 @@ const loginSchema = z.object({
   email: z.string().email("Invalid email"),
   password: z.string().min(6, "Password is required"),
 });
-
 // ─── SIGNUP ───────────────────────────────────────────────
 export async function signup(req: Request, res: Response): Promise<void> {
-
   try {
     const parsed = signupSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -35,7 +33,6 @@ export async function signup(req: Request, res: Response): Promise<void> {
     }
 
     const { name, email, password } = parsed.data;
-    console.log("Creating user:", email);  // ← add this
 
     const existing = await db.user.findUnique({ where: { email } });
     if (existing) {
@@ -44,22 +41,19 @@ export async function signup(req: Request, res: Response): Promise<void> {
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
-    await db.user.create({ data: { name, email, hashedPassword } });
-    console.log("User created!");
-
-    try {
-      const token = await generateVerificationToken(email);
-      console.log("Token generated:", token);
-      
-      await sendVerificationEmail(email, token);
-      console.log("Email sent!");
-    } catch (tokenError) {
-      console.error("Token/Email error:", tokenError);
-    }
+    await db.user.create({
+      data: {
+        name,
+        email,
+        hashedPassword,
+        emailVerified: new Date(), // skip email verification
+      },
+    });
+    console.log("User created:", email);
 
     res.status(201).json({
       success: true,
-      message: "Account created! Check your email to verify your account.",
+      message: "Account created!",
     });
   } catch (error) {
     console.error("Signup error:", error);
