@@ -12,9 +12,11 @@
 
 ## Demo
 
-[![MoodMatch Demo](https://img.shields.io/badge/Watch-Demo-red?style=flat-square&logo=youtube)](https://your-demo-link-here)
+**Existing User Flow**  
+[![MoodMatch Existing User Demo](https://img.shields.io/badge/Watch-Demo-red?style=flat-square&logo=youtube)](https://youtu.be/T6IAxYM6ej0)
 
-> Replace the link above with your video demo URL (YouTube, Loom, etc.)
+**New User Flow**  
+[![MoodMatch New User Demo](https://img.shields.io/badge/Watch-Demo-blue?style=flat-square&logo=youtube)](https://youtu.be/aiHyBfrjnUk)
 
 ---
 
